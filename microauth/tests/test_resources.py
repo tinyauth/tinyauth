@@ -18,7 +18,7 @@ class TestCase(unittest.TestCase):
         db.session.remove()
         db.drop_all()
 
-    def test_get_keys_no_keys(self):
+    def test_get_users_no_users(self):
         response = self.client.get('/api/v1/users')
         assert response.status_code == 200
         assert response.get_data(as_text=True) == '[]\n'
