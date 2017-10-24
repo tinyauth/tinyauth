@@ -1,0 +1,36 @@
+version: '2'
+
+volumes:
+  postgres_data_dev: {}
+  postgres_backup_dev: {}
+
+services:
+  postgres:
+    build: ./docker/postgres
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - postgres_backup_dev:/backups
+    environment:
+      - POSTGRES_USER=microauth
+      - POSTGRES_PASSWORD=microauth
+      - POSTGRES_DB=microauth
+
+  flask:
+    build:
+      context: .
+      dockerfile: ./docker/flask/Dockerfile-dev
+    command: /start-dev.sh
+    depends_on:
+      - postgres
+    environment:
+      - POSTGRES_USER=microauth
+      - POSTGRES_PASSWORD=microauth
+      - DATABASE_URI=postgres://microauth:microauth@postgres/microauth
+      - RESULT_BACKEND=redis://redis/
+      - QUEUE_BACKEND=redis://redis/
+    volumes:
+      - .:/app/src
+    ports:
+      - "8000:8000"
+    links:
+      - postgres

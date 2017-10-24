@@ -1,0 +1,46 @@
+version: '2'
+
+volumes:
+  postgres_data: {}
+  postgres_backup: {}
+  nginx_tls: {}
+
+services:
+  postgres:
+    build: ./docker/postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_backup:/backups
+    environment:
+    - POSTGRES_DB=microauth
+    - POSTGRES_USER=microauth
+    - POSTGRES_PASSWORD=microauth
+    restart: always
+
+  flask:
+    build:
+      context: .
+      dockerfile: ./docker/flask/Dockerfile
+    depends_on:
+      - postgres
+      - redis
+    command: /gunicorn.sh
+    user: flask
+    environment:
+    - POSTGRES_USER=microauth
+    - POSTGRES_PASSWORD=microauth
+    - DATABASE_URI=postgres://microauth:microauth@postgres/microauth
+    - RESULT_BACKEND=redis://redis/
+    - QUEUE_BACKEND=redis://redis/
+    restart: always
+
+  nginx:
+    build: ./docker/nginx
+    volumes:
+      - nginx_tls:/etc/nginx/external/
+    depends_on:
+      - flask
+      - prometheus
+    ports:
+      - "0.0.0.0:443:443"
+    restart: always
