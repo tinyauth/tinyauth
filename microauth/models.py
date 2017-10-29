@@ -29,5 +29,20 @@ class User(db.Model):
         backref=db.backref('policies', lazy=True)
     )
 
+    access_keys = db.relationship('AccessKey', backref='user', lazy=True)
+
     def __repr__(self):
         return f'<User {self.username!r}>'
+
+
+class AccessKey(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    access_key_id = db.Column(db.String(128))
+    secret_access_key = db.Column(db.String(128))
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __repr__(self):
+        return f'<AccessKey {self.access_key_id!r}>'
