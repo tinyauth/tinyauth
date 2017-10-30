@@ -34,3 +34,5 @@ six==1.11.0
 SQLAlchemy==1.1.14
 testfixtures==5.2.0
 Werkzeug==0.12.2
+pytest-cov
+coveralls
