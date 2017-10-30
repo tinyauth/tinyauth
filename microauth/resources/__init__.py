@@ -5,4 +5,4 @@ from . import service
 del service
 
 api.add_resource(UsersResource, '/users')
-api.add_resource(UserResource, '/users/<key_id>')
+api.add_resource(UserResource, '/users/<user_id>')

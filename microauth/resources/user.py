@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify, make_response, request
 from flask_restful import Resource, abort, fields, marshal, reqparse
 
 from microauth.app import db
@@ -48,7 +48,7 @@ class UserResource(Resource):
         user = self._get_or_404(user_id)
         db.session.delete(user)
 
-        return '{}', 201
+        return make_response(jsonify({}), 201, [])
 
 
 class UsersResource(Resource):
