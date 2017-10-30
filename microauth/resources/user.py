@@ -70,30 +70,3 @@ class UsersResource(Resource):
         db.session.commit()
 
         return jsonify(marshal(user, user_fields))
-
-
-api.add_resource(UsersResource, '/users')
-api.add_resource(UserResource, '/users/<key_id>')
-
-
-authorize_parser = reqparse.RequestParser()
-authorize_parser.add_argument('action', type=str, location='json', required=True)
-authorize_parser.add_argument('resource', type=str, location='json', required=True)
-authorize_parser.add_argument('headers', type=list, location='json', required=True)
-authorize_parser.add_argument('context', type=dict, location='json', required=True)
-
-
-@app.route('/api/v1/authorize', methods=['POST'])
-def service_authorize():
-    internal_authorize('Authorize', f'arn:microauth:')
-
-    args = authorize_parser.parse_args()
-
-    result = external_authorize(
-        action=args['action'],
-        resource=args['resource'],
-        headers=Headers(args['headers']),
-        context=args['context'],
-    )
-
-    return jsonify(result)
