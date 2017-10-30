@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED 1
 RUN groupadd -r flask && useradd -r -g flask flask
 
 COPY ./requirements.txt /requirements.txt
-RUN pip install -r /requirements.txt /app/wheels/*.whl
+RUN pip install -r /requirements.txt
 
 COPY . /app/src
 
