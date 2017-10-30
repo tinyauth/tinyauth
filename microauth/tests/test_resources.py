@@ -3,7 +3,7 @@ import json
 import unittest
 
 from microauth.app import app, db
-from microauth.models import User, AccessKey, Policy
+from microauth.models import AccessKey, Policy, User
 
 
 class TestCase(unittest.TestCase):

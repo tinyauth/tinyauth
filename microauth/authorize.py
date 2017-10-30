@@ -1,7 +1,7 @@
 from flask import abort, request
 
-from .policy import allow
 from .models import AccessKey
+from .policy import allow
 
 
 def authorize(action, resource, context=None):
@@ -10,7 +10,7 @@ def authorize(action, resource, context=None):
 
     auth = request.authorization
 
-    access_key = AccessKey.query.filter(AccessKey.access_key_id==auth.username).first()
+    access_key = AccessKey.query.filter(AccessKey.access_key_id == auth.username).first()
     if not access_key:
         abort(401, 'NoSuchKey')
 

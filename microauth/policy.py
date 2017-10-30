@@ -22,7 +22,7 @@ def _match_action(statement, action):
         if fnmatch.fnmatch(action, statement_action):
             return True
 
-    # FIXME: Implement NotAction
+    # FIXME: Implement NotAction
 
     return False
 
@@ -32,7 +32,7 @@ def _match_resource(statement, resource):
         if fnmatch.fnmatch(resource, statement_resource):
             return True
 
-    # FIXME: Implement NotResource
+    # FIXME: Implement NotResource
 
     return False
 

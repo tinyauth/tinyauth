@@ -1,12 +1,10 @@
-import base64
-
 from flask import jsonify, request
 from flask_restful import Resource, abort, fields, marshal, reqparse
 
-from microauth.app import api, app, db
+from microauth.app import api, db
+from microauth.authorize import authorize
 from microauth.models import User
 from microauth.simplerest import build_response_for_request
-from microauth.authorize import authorize
 
 user_fields = {
     'id': fields.Integer,

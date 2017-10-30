@@ -1,7 +1,7 @@
 from microauth.app import db
 
-
-user_policies = db.Table('user_policies',
+user_policies = db.Table(
+    'user_policies',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('policy_id', db.Integer, db.ForeignKey('policy.id'), primary_key=True)
 )
