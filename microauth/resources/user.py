@@ -1,9 +1,8 @@
 from flask import jsonify, request
 from flask_restful import Resource, abort, fields, marshal, reqparse
-from werkzeug.datastructures import Headers
 
-from microauth.app import api, app, db
-from microauth.authorize import external_authorize, internal_authorize
+from microauth.app import db
+from microauth.authorize import internal_authorize
 from microauth.models import User
 from microauth.simplerest import build_response_for_request
 

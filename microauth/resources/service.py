@@ -1,5 +1,5 @@
-from flask import jsonify, request
-from flask_restful import Resource, abort, fields, marshal, reqparse
+from flask import jsonify
+from flask_restful import reqparse
 from werkzeug.datastructures import Headers
 
 from ..app import app
