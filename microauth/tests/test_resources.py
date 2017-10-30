@@ -3,6 +3,7 @@ import json
 import unittest
 
 from microauth.app import app, db
+from microauth.models import User, AccessKey, Policy
 
 
 class TestCase(unittest.TestCase):
@@ -23,3 +24,53 @@ class TestCase(unittest.TestCase):
         assert response.status_code == 200
         assert response.get_data(as_text=True) == '[]\n'
         assert b''.join(response.response) == b'[]\n'
+
+    def test_create_user_noauth(self):
+        response = self.client.post(
+            '/api/v1/users',
+            data=json.dumps({
+                'username': 'freddy',
+            }),
+            content_type='application/json',
+        )
+        assert response.status_code == 401
+        assert response.get_data(as_text=True) == '{"message": "NoSuchKey"}\n'
+
+    def test_create_user_with_auth(self):
+        policy = Policy(name='microauth', policy={
+            'Version': '2012-10-17',
+            'Statement': [{
+                'Action': 'microauth:*',
+                'Resource': 'arn:microauth:*',
+                'Effect': 'Allow',
+            }]
+        })
+        db.session.add(policy)
+
+        user = User(username='charles')
+        user.policies.append(policy)
+        db.session.add(user)
+
+        access_key = AccessKey(
+            access_key_id='AKIDEXAMPLE',
+            secret_access_key='password',
+            user=user,
+        )
+        db.session.add(access_key)
+
+        db.session.commit()
+
+        response = self.client.post(
+            '/api/v1/users',
+            data=json.dumps({
+                'username': 'freddy',
+            }),
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                )
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 200
+        assert json.loads(response.get_data(as_text=True)) == {'id': 2, 'username': 'freddy'}

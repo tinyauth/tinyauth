@@ -6,10 +6,11 @@ from flask_restful import Resource, abort, fields, marshal, reqparse
 from microauth.app import api, app, db
 from microauth.models import User
 from microauth.simplerest import build_response_for_request
+from microauth.authorize import authorize
 
 user_fields = {
     'id': fields.Integer,
-    'name': fields.String,
+    'username': fields.String,
 }
 
 user_parser = reqparse.RequestParser()
@@ -25,22 +26,27 @@ class UserResource(Resource):
         return user
 
     def get(self, user_id):
+        authorize('microauth:GetUser', f'arn:microauth:users/{user_id}')
+
         user = self._get_or_404(user_id)
         return jsonify(marshal(user, user_fields))
 
     def put(self, user_id):
-        user = self._get_or_404(user_id)
+        authorize('microauth:UpdateUser', f'arn:microauth:users/{user_id}')
 
         args = user_parser.parse_args()
 
+        user = self._get_or_404(user_id)
         user.name = args['username']
-
         db.session.add(user)
+
         db.session.commit()
 
         return jsonify(marshal(user, user_fields))
 
     def delete(self, user_id):
+        authorize('microauth:DeleteUser', f'arn:microauth:users/{user_id}')
+
         user = self._get_or_404(user_id)
         db.session.delete(user)
 
@@ -54,6 +60,8 @@ class UsersResource(Resource):
 
     def post(self):
         args = user_parser.parse_args()
+
+        authorize('microauth:CreateUser', f'arn:microauth:users/args["username"]')
 
         user = User(
             username=args['username'],
