@@ -29,9 +29,6 @@ services:
     environment:
     - POSTGRES_USER=microauth
     - POSTGRES_PASSWORD=microauth
-    - DATABASE_URI=postgres://microauth:microauth@postgres/microauth
-    - RESULT_BACKEND=redis://redis/
-    - QUEUE_BACKEND=redis://redis/
     restart: always
 
   nginx:
