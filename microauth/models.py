@@ -1,4 +1,29 @@
+import json
+
+import sqlalchemy.types as types
+
 from microauth.app import db
+
+
+class StringyJSON(types.TypeDecorator):
+    """Stores and retrieves JSON as TEXT."""
+
+    impl = types.TEXT
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = json.loads(value)
+        return value
+
+
+# TypeEngine.with_variant says "use StringyJSON instead when
+# connecting to 'sqlite'"
+MagicJSON = types.JSON().with_variant(StringyJSON, 'sqlite')
 
 user_policies = db.Table(
     'user_policies',
@@ -11,7 +36,7 @@ class Policy(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128))
-    policy = db.Column(db.JSON)
+    policy = db.Column(MagicJSON)
 
     def __repr__(self):
         return f'<Policy {self.name!r}>'
