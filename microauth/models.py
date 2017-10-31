@@ -11,10 +11,10 @@ class Policy(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128))
-    policy = db.JSON()
+    policy = db.Column(db.JSON)
 
     def __repr__(self):
-        return f'<Policy {self.self.name!r}>'
+        return f'<Policy {self.name!r}>'
 
 
 class User(db.Model):
