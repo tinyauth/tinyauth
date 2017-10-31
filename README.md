@@ -1,8 +1,6 @@
 # microauth
 
-[![Docker Automated buil](https://img.shields.io/docker/automated/Jc2k/microauth.svg)](https://hub.docker.com/r/jc2k/microauth/)
-[![PyPI](https://img.shields.io/pypi/v/microauth.svg)](https://pypi.python.org/pypi/microauth)
-[![Codecov](https://img.shields.io/codecov/c/github/jc2k/microauth.svg)](https://codecov.io/gh/Jc2k/microauth)
+[![Docker Automated buil](https://img.shields.io/docker/automated/Jc2k/microauth.svg)](https://hub.docker.com/r/jc2k/microauth/) [![PyPI](https://img.shields.io/pypi/v/microauth.svg)](https://pypi.python.org/pypi/microauth) [![Codecov](https://img.shields.io/codecov/c/github/jc2k/microauth.svg)](https://codecov.io/gh/Jc2k/microauth)
 
 This codebase implements a simple authentication and authorization system as a microservice.
 
