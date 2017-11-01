@@ -31,6 +31,34 @@ user_policies = db.Table(
     db.Column('policy_id', db.Integer, db.ForeignKey('policy.id'), primary_key=True)
 )
 
+group_policies = db.Table(
+    'group_policies',
+    db.Column('group_id', db.Integer, db.ForeignKey('group.id'), primary_key=True),
+    db.Column('policy_id', db.Integer, db.ForeignKey('policy.id'), primary_key=True)
+)
+
+group_users = db.Table(
+    'group_users',
+    db.Column('group_id', db.Integer, db.ForeignKey('group.id'), primary_key=True),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
+)
+
+
+class Group(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128))
+
+    policies = db.relationship(
+        'Policy',
+        secondary=group_policies,
+        lazy='subquery',
+        backref=db.backref('policies', lazy=True)
+    )
+
+    def __repr__(self):
+        return f'<Group {self.group!r}>'
+
 
 class Policy(db.Model):
 
@@ -47,11 +75,18 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(128))
 
+    groups = db.relationship(
+        'Group',
+        secondary=group_users,
+        lazy='subquery',
+        backref=db.backref('users', lazy=True)
+    )
+
     policies = db.relationship(
         'Policy',
         secondary=user_policies,
         lazy='subquery',
-        backref=db.backref('policies', lazy=True)
+        backref=db.backref('users', lazy=True)
     )
 
     access_keys = db.relationship('AccessKey', backref='user', lazy=True)
