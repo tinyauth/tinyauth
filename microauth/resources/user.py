@@ -54,6 +54,8 @@ class UserResource(Resource):
 class UsersResource(Resource):
 
     def get(self):
+        internal_authorize('ListUsers', f'arn:microauth:users/')
+
         return build_response_for_request(User, request, user_fields)
 
     def post(self):
