@@ -57,7 +57,7 @@ class Group(db.Model):
     )
 
     def __repr__(self):
-        return f'<Group {self.group!r}>'
+        return f'<Group {self.name!r}>'
 
 
 class Policy(db.Model):

@@ -1,5 +1,5 @@
 import React from 'react';
-import { List, Responsive, SimpleList, Create, Edit, EditButton, DeleteButton, SimpleForm, Datagrid, TextField, DisabledInput, TextInput } from 'admin-on-rest/lib/mui';
+import { List, Responsive, SimpleList, Create, Edit, EditButton, DeleteButton, SimpleForm, Datagrid, TextField, DisabledInput, TextInput, ReferenceManyField } from 'admin-on-rest/lib/mui';
 
 export const UserList = (props) => (
   <List {...props}>
@@ -28,6 +28,13 @@ export const UserEdit = (props) => (
     <SimpleForm>
       <DisabledInput source="id" />
       <TextInput source="username" validation={{ required: true }} />
+      <ReferenceManyField label="Groups" reference="groups" target="users">
+        <Datagrid>
+            <TextField source="name" />
+            <EditButton />
+        </Datagrid>
+      </ReferenceManyField>
+
     </SimpleForm>
   </Edit>
 );

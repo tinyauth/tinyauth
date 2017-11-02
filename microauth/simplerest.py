@@ -7,6 +7,7 @@ from sqlalchemy import inspect, or_
 FILTER_FUNCS = {
     int: lambda attr, value: attr == value,
     str: lambda attr, value: attr.ilike(value),
+    'ManyToMany': lambda attr, value: attr.any(id=value),
 }
 
 
@@ -32,7 +33,12 @@ def filter_query(model, query, filter_arg):
             values = [values]
 
         query, attr = resolve_field(model, query, key)
-        filter_func = FILTER_FUNCS[attr.prop.expression.type.python_type]
+        try:
+            attr_type = attr.prop.expression.type.python_type
+        except AttributeError:
+            attr_type = 'ManyToMany'
+
+        filter_func = FILTER_FUNCS[attr_type]
         query = query.filter(or_(*(filter_func(attr, value) for value in values)))
     return query
 
