@@ -2,25 +2,30 @@ import base64
 import json
 import unittest
 
-from microauth.app import app, db
+from microauth.app import create_app, db
 from microauth.models import AccessKey, Group, Policy, User
 
 
 class TestCase(unittest.TestCase):
 
     def setUp(self):
-        app.debug = True
-        app.config['BUNDLE_ERRORS'] = True
-        app.config['TESTING'] = True
-        app.config['DEBUG'] = True
-        app.config['WTF_CSRF_ENABLED'] = False
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-        self.client = app.test_client()
-        db.create_all()
+        self.app = create_app(self)
+        self.app.debug = True
+        self.app.config['BUNDLE_ERRORS'] = True
+        self.app.config['TESTING'] = True
+        self.app.config['DEBUG'] = True
+        self.app.config['WTF_CSRF_ENABLED'] = False
+        self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+        self.client = self.app.test_client()
+        db.create_all(app=self.app)
+
+        self._ctx = self.app.test_request_context()
+        self._ctx.push()
 
     def tearDown(self):
         db.session.remove()
         db.drop_all()
+        self._ctx.pop()
 
     def test_get_groups_no_users(self):
         response = self.client.get('/api/v1/groups')

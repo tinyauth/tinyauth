@@ -22,7 +22,6 @@ setup(
         "Flask-Cors>=3.0.2",
         "Flask-Migrate>=2.0.3",
         "Flask-RESTful>=0.3.5",
-        "Flask-Script>=2.0.5",
         "Flask-SQLAlchemy>=2.2",
         "psycopg2>=2.6.1",
     ],
@@ -37,6 +36,6 @@ setup(
     },
     entry_points='''
         [console_scripts]
-        microauth = microauth.__main__:main
+        microauth = microauth.app:cli
     ''',
 )

@@ -8,6 +8,7 @@ COPY ./requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
 COPY . /app/src
+RUN pip install -r /app/src/requirements.txt -e /app/src
 
 COPY ./docker/flask/gunicorn.sh /gunicorn.sh
 COPY ./docker/flask/entrypoint.sh /entrypoint.sh

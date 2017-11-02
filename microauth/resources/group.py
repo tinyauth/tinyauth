@@ -1,5 +1,5 @@
-from flask import jsonify, make_response, request
-from flask_restful import Resource, abort, fields, marshal, reqparse
+from flask import Blueprint, jsonify, make_response, request
+from flask_restful import Api, Resource, abort, fields, marshal, reqparse
 
 from microauth.app import db
 from microauth.authorize import internal_authorize
@@ -71,3 +71,9 @@ class GroupsResource(Resource):
         db.session.commit()
 
         return jsonify(marshal(group, group_fields))
+
+
+group_blueprint = Blueprint('group', __name__)
+group_api = Api(group_blueprint, prefix='/api/v1')
+group_api.add_resource(GroupsResource, '/groups')
+group_api.add_resource(GroupResource, '/groups/<group_id>')

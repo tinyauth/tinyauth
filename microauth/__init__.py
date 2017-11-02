@@ -1,6 +1,5 @@
-from . import app, resources
+from . import app
 
 __all__ = [
     'app',
-    'resources',
 ]

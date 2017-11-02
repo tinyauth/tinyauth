@@ -1,5 +1,5 @@
-from flask import jsonify, make_response, request
-from flask_restful import Resource, abort, fields, marshal, reqparse
+from flask import Blueprint, jsonify, make_response, request
+from flask_restful import Api, Resource, abort, fields, marshal, reqparse
 
 from microauth.app import db
 from microauth.authorize import internal_authorize
@@ -71,3 +71,9 @@ class UsersResource(Resource):
         db.session.commit()
 
         return jsonify(marshal(user, user_fields))
+
+
+user_blueprint = Blueprint('user', __name__)
+user_api = Api(user_blueprint, prefix='/api/v1')
+user_api.add_resource(UsersResource, '/users')
+user_api.add_resource(UserResource, '/users/<user_id>')

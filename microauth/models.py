@@ -53,7 +53,7 @@ class Group(db.Model):
         'Policy',
         secondary=group_policies,
         lazy='subquery',
-        backref=db.backref('policies', lazy=True)
+        backref=db.backref('groups', lazy=True)
     )
 
     def __repr__(self):

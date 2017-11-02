@@ -23,7 +23,6 @@ services:
       dockerfile: ./docker/flask/Dockerfile
     depends_on:
       - postgres
-      - redis
     command: /gunicorn.sh
     user: flask
     environment:
@@ -37,7 +36,6 @@ services:
       - nginx_tls:/etc/nginx/external/
     depends_on:
       - flask
-      - prometheus
     ports:
       - "0.0.0.0:443:443"
     restart: always
