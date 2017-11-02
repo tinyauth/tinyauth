@@ -1,5 +1,5 @@
 import React from 'react';
-import { List, Responsive, SimpleList, Create, Edit, EditButton, DeleteButton, SimpleForm, Datagrid, TextField, DisabledInput, TextInput, ReferenceManyField } from 'admin-on-rest/lib/mui';
+import { List, Responsive, SimpleList, Create, Edit, EditButton, DeleteButton, SimpleForm, Datagrid, TextField, DisabledInput, TextInput, ReferenceArrayField, ReferenceArrayInput, SelectArrayInput, SingleFieldList, ChipField } from 'admin-on-rest/lib/mui';
 
 export const UserList = (props) => (
   <List {...props}>
@@ -11,6 +11,11 @@ export const UserList = (props) => (
       }
       medium={<Datagrid>
           <TextField label="Username" source="username" />
+          <ReferenceArrayField label="Groups" reference="groups" source="groups">
+              <SingleFieldList>
+                  <ChipField source="name" />
+              </SingleFieldList>
+          </ReferenceArrayField>
           <EditButton />
           <DeleteButton />
         </Datagrid>
@@ -27,14 +32,10 @@ export const UserEdit = (props) => (
   <Edit title={<UserTitle />} {...props}>
     <SimpleForm>
       <DisabledInput source="id" />
-      <TextInput source="username" validation={{ required: true }} />
-      <ReferenceManyField label="Groups" reference="groups" target="users">
-        <Datagrid>
-            <TextField source="name" />
-            <EditButton />
-        </Datagrid>
-      </ReferenceManyField>
-
+      <TextInput label="Username" source="username" validation={{ required: true }} />
+      <ReferenceArrayInput label="Groups" source="groups" reference="groups" allowEmpty>
+        <SelectArrayInput optionText="name" />
+      </ReferenceArrayInput>
     </SimpleForm>
   </Edit>
 );

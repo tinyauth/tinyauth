@@ -9,6 +9,7 @@ from microauth.simplerest import build_response_for_request
 user_fields = {
     'id': fields.Integer,
     'username': fields.String,
+    'groups': fields.List(fields.String(attribute='id')),
 }
 
 user_parser = reqparse.RequestParser()
