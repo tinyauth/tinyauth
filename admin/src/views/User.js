@@ -1,6 +1,9 @@
 import React from 'react';
 import { List, Responsive, SimpleList, Create, Edit, EditButton, DeleteButton, SimpleForm, Datagrid, TextField, DisabledInput, TextInput, ReferenceArrayField, ReferenceArrayInput, SelectArrayInput, SingleFieldList, ChipField } from 'admin-on-rest/lib/mui';
 
+import {TabbedForm} from 'admin-on-rest/lib/mui';
+import {FormTab} from 'admin-on-rest/lib/mui';
+
 export const UserList = (props) => (
   <List {...props}>
     <Responsive
@@ -30,13 +33,22 @@ const UserTitle = ({ record }) => {
 
 export const UserEdit = (props) => (
   <Edit title={<UserTitle />} {...props}>
-    <SimpleForm>
-      <DisabledInput source="id" />
-      <TextInput label="Username" source="username" validation={{ required: true }} />
-      <ReferenceArrayInput label="Groups" source="groups" reference="groups" allowEmpty>
-        <SelectArrayInput optionText="name" />
-      </ReferenceArrayInput>
-    </SimpleForm>
+  {permissions => (
+      <TabbedForm defaultValue={{ role: 'user' }}>
+          <FormTab label="Summary">
+              <DisabledInput source="id" />
+              <TextInput label="Username" source="username" validation={{ required: true }} />
+          </FormTab>
+          <FormTab label="Groups">
+          <ReferenceArrayField label="" source="groups" reference="groups">
+              <Datagrid sort={{ field: 'name', order: 'DESC' }}>
+                  <TextField label="Group Name" source="name" />
+                  <EditButton />
+              </Datagrid>
+          </ReferenceArrayField>
+          </FormTab>
+      </TabbedForm>
+  )}
   </Edit>
 );
 
@@ -44,6 +56,10 @@ export const UserCreate = (props) => (
   <Create {...props}>
     <SimpleForm>
       <TextInput source="username" validation={{ required: true }} />
+
+      <ReferenceArrayInput label="Groups" source="groups" reference="groups" allowEmpty>
+          <SelectArrayInput optionText="name"/>
+      </ReferenceArrayInput>
     </SimpleForm>
   </Create>
 );
