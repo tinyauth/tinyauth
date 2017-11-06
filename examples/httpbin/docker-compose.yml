@@ -1,0 +1,35 @@
+version: '2'
+
+volumes:
+  postgres_data: {}
+
+services:
+  postgres:
+    image: postgres:9.4
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+    - POSTGRES_DB=microauth
+    - POSTGRES_USER=microauth
+    - POSTGRES_PASSWORD=microauth
+
+  microauth:
+    image: jc2k/microauth:dev
+    depends_on:
+      - postgres
+    command: /gunicorn.sh
+    user: flask
+    environment:
+    - POSTGRES_USER=microauth
+    - POSTGRES_PASSWORD=microauth
+
+  httpbin:
+    build: httpbin
+
+  nginx:
+    build: nginx
+    depends_on:
+      - microauth
+      - httpbin
+    ports:
+      - "0.0.0.0:80:80"
