@@ -2,8 +2,8 @@ import base64
 import json
 import unittest
 
-from microauth.app import create_app, db
-from microauth.models import AccessKey, Policy, User
+from tinyauth.app import create_app, db
+from tinyauth.models import AccessKey, Group, Policy, User
 
 
 class TestCase(unittest.TestCase):
@@ -27,17 +27,17 @@ class TestCase(unittest.TestCase):
         db.drop_all()
         self._ctx.pop()
 
-    def test_get_users_no_users(self):
-        response = self.client.get('/api/v1/users')
+    def test_get_groups_no_users(self):
+        response = self.client.get('/api/v1/groups')
         assert response.status_code == 200
         assert response.get_data(as_text=True) == '[]\n'
         assert b''.join(response.response) == b'[]\n'
 
-    def test_create_user_noauth(self):
+    def test_create_group_noauth(self):
         response = self.client.post(
-            '/api/v1/users',
+            '/api/v1/groups',
             data=json.dumps({
-                'username': 'freddy',
+                'name': 'devs',
             }),
             content_type='application/json',
         )
@@ -49,12 +49,12 @@ class TestCase(unittest.TestCase):
             }
         }
 
-    def test_create_user_with_auth(self):
-        policy = Policy(name='microauth', policy={
+    def test_create_group_with_auth(self):
+        policy = Policy(name='tinyauth', policy={
             'Version': '2012-10-17',
             'Statement': [{
-                'Action': 'microauth:*',
-                'Resource': 'arn:microauth:*',
+                'Action': 'tinyauth:*',
+                'Resource': 'arn:tinyauth:*',
                 'Effect': 'Allow',
             }]
         })
@@ -74,9 +74,9 @@ class TestCase(unittest.TestCase):
         db.session.commit()
 
         response = self.client.post(
-            '/api/v1/users',
+            '/api/v1/groups',
             data=json.dumps({
-                'username': 'freddy',
+                'name': 'devs',
             }),
             headers={
                 'Authorization': 'Basic {}'.format(
@@ -86,14 +86,14 @@ class TestCase(unittest.TestCase):
             content_type='application/json',
         )
         assert response.status_code == 200
-        assert json.loads(response.get_data(as_text=True)) == {'id': 2, 'username': 'freddy'}
+        assert json.loads(response.get_data(as_text=True)) == {'id': 1, 'name': 'devs'}
 
-    def test_delete_user_with_auth_but_no_perms(self):
-        policy = Policy(name='microauth', policy={
+    def test_delete_group_with_auth_but_no_perms(self):
+        policy = Policy(name='tinyauth', policy={
             'Version': '2012-10-17',
             'Statement': [{
-                'Action': 'microauth:*',
-                'Resource': 'arn:microauth:*',
+                'Action': 'tinyauth:DeleteUser',
+                'Resource': 'arn:tinyauth:*',
                 'Effect': 'Allow',
             }]
         })
@@ -103,8 +103,8 @@ class TestCase(unittest.TestCase):
         user.policies.append(policy)
         db.session.add(user)
 
-        user = User(username='freddy')
-        db.session.add(user)
+        grp = Group(name='freddy')
+        db.session.add(grp)
 
         access_key = AccessKey(
             access_key_id='AKIDEXAMPLE',
@@ -116,7 +116,7 @@ class TestCase(unittest.TestCase):
         db.session.commit()
 
         response = self.client.delete(
-            '/api/v1/users/1',
+            '/api/v1/groups/1',
             headers={
                 'Authorization': 'Basic {}'.format(
                     base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
@@ -132,12 +132,12 @@ class TestCase(unittest.TestCase):
             }
         }
 
-    def test_delete_user_with_auth(self):
-        policy = Policy(name='microauth', policy={
+    def test_delete_group_with_auth(self):
+        policy = Policy(name='tinyauth', policy={
             'Version': '2012-10-17',
             'Statement': [{
-                'Action': 'microauth:*',
-                'Resource': 'arn:microauth:*',
+                'Action': 'tinyauth:*',
+                'Resource': 'arn:tinyauth:*',
                 'Effect': 'Allow',
             }]
         })
@@ -154,13 +154,13 @@ class TestCase(unittest.TestCase):
         )
         db.session.add(access_key)
 
-        user = User(username='freddy')
-        db.session.add(user)
+        grp = Group(name='devs')
+        db.session.add(grp)
 
         db.session.commit()
 
         response = self.client.delete(
-            '/api/v1/users/2',
+            '/api/v1/groups/1',
             headers={
                 'Authorization': 'Basic {}'.format(
                     base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')

@@ -9,19 +9,19 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-    - POSTGRES_DB=microauth
-    - POSTGRES_USER=microauth
-    - POSTGRES_PASSWORD=microauth
+    - POSTGRES_DB=tinyauth
+    - POSTGRES_USER=tinyauth
+    - POSTGRES_PASSWORD=tinyauth
 
-  microauth:
-    image: jc2k/microauth:dev
+  tinyauth:
+    image: tinyauth/tinyauth:dev
     depends_on:
       - postgres
     command: /gunicorn.sh
     user: flask
     environment:
-    - POSTGRES_USER=microauth
-    - POSTGRES_PASSWORD=microauth
+    - POSTGRES_USER=tinyauth
+    - POSTGRES_PASSWORD=tinyauth
 
   httpbin:
     build: httpbin
@@ -29,7 +29,7 @@ services:
   nginx:
     build: nginx
     depends_on:
-      - microauth
+      - tinyauth
       - httpbin
     ports:
       - "0.0.0.0:80:80"

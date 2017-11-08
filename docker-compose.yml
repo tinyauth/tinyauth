@@ -12,9 +12,9 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - postgres_backup:/backups
     environment:
-    - POSTGRES_DB=microauth
-    - POSTGRES_USER=microauth
-    - POSTGRES_PASSWORD=microauth
+    - POSTGRES_DB=tinyauth
+    - POSTGRES_USER=tinyauth
+    - POSTGRES_PASSWORD=tinyauth
     restart: always
 
   flask:
@@ -26,8 +26,8 @@ services:
     command: /gunicorn.sh
     user: flask
     environment:
-    - POSTGRES_USER=microauth
-    - POSTGRES_PASSWORD=microauth
+    - POSTGRES_USER=tinyauth
+    - POSTGRES_PASSWORD=tinyauth
     restart: always
 
   nginx:

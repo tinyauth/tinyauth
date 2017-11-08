@@ -11,9 +11,9 @@ services:
       - postgres_data_dev:/var/lib/postgresql/data
       - postgres_backup_dev:/backups
     environment:
-      - POSTGRES_USER=microauth
-      - POSTGRES_PASSWORD=microauth
-      - POSTGRES_DB=microauth
+      - POSTGRES_USER=tinyauth
+      - POSTGRES_PASSWORD=tinyauth
+      - POSTGRES_DB=tinyauth
 
   flask:
     build:
@@ -23,8 +23,8 @@ services:
     depends_on:
       - postgres
     environment:
-      - POSTGRES_USER=microauth
-      - POSTGRES_PASSWORD=microauth
+      - POSTGRES_USER=tinyauth
+      - POSTGRES_PASSWORD=tinyauth
     volumes:
       - .:/app/src
     ports:

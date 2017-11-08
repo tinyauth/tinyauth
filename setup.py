@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 version = '0.0.1'
 
 setup(
-    name='microauth',
+    name='tinyauth',
     version=version,
     license='Apache Software License',
     classifiers=[
@@ -36,6 +36,6 @@ setup(
     },
     entry_points='''
         [console_scripts]
-        microauth = microauth.app:cli
+        tinyauth = tinyauth.app:cli
     ''',
 )

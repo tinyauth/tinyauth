@@ -1,10 +1,10 @@
 from flask import Blueprint, jsonify, make_response, request
 from flask_restful import Api, Resource, abort, fields, marshal, reqparse
 
-from microauth.app import db
-from microauth.authorize import internal_authorize
-from microauth.models import Group
-from microauth.simplerest import build_response_for_request
+from tinyauth.app import db
+from tinyauth.authorize import internal_authorize
+from tinyauth.models import Group
+from tinyauth.simplerest import build_response_for_request
 
 group_fields = {
     'id': fields.Integer,
@@ -24,13 +24,13 @@ class GroupResource(Resource):
         return group
 
     def get(self, group_id):
-        internal_authorize('GetGroup', f'arn:microauth:groups/{group_id}')
+        internal_authorize('GetGroup', f'arn:tinyauth:groups/{group_id}')
 
         group = self._get_or_404(group_id)
         return jsonify(marshal(group, group_fields))
 
     def put(self, group_id):
-        internal_authorize('UpdateGroup', f'arn:microauth:groups/{group_id}')
+        internal_authorize('UpdateGroup', f'arn:tinyauth:groups/{group_id}')
 
         args = group_parser.parse_args()
 
@@ -43,7 +43,7 @@ class GroupResource(Resource):
         return jsonify(marshal(group, group_fields))
 
     def delete(self, group_id):
-        internal_authorize('DeleteGroup', f'arn:microauth:groups/{group_id}')
+        internal_authorize('DeleteGroup', f'arn:tinyauth:groups/{group_id}')
 
         group = self._get_or_404(group_id)
         db.session.delete(group)
@@ -54,14 +54,14 @@ class GroupResource(Resource):
 class GroupsResource(Resource):
 
     def get(self):
-        internal_authorize('ListGroups', f'arn:microauth:groups/')
+        internal_authorize('ListGroups', f'arn:tinyauth:groups/')
 
         return build_response_for_request(Group, request, group_fields)
 
     def post(self):
         args = group_parser.parse_args()
 
-        internal_authorize('CreateGroup', f'arn:microauth:groups/args["name"]')
+        internal_authorize('CreateGroup', f'arn:tinyauth:groups/args["name"]')
 
         group = Group(
             name=args['name'],

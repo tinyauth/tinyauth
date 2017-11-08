@@ -2,7 +2,7 @@ import json
 
 import sqlalchemy.types as types
 
-from microauth.app import db
+from tinyauth.app import db
 
 
 class StringyJSON(types.TypeDecorator):

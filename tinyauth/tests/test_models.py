@@ -1,6 +1,6 @@
 import unittest
 
-from microauth.models import User
+from tinyauth.models import User
 
 
 class TestModel(unittest.TestCase):

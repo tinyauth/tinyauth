@@ -1,6 +1,6 @@
-# microauth
+# tinyauth
 
-[![Docker Automated build](https://img.shields.io/docker/automated/Jc2k/microauth.svg)](https://hub.docker.com/r/jc2k/microauth/) [![PyPI](https://img.shields.io/pypi/v/microauth.svg)](https://pypi.python.org/pypi/microauth) [![Codecov](https://img.shields.io/codecov/c/github/jc2k/microauth.svg)](https://codecov.io/gh/Jc2k/microauth)
+[![Docker Automated build](https://img.shields.io/docker/automated/tinyauth/tinyauth.svg)](https://hub.docker.com/r/tinyauth/tinyauth/) [![PyPI](https://img.shields.io/pypi/v/tinyauth.svg)](https://pypi.python.org/pypi/tinyauth) [![Codecov](https://img.shields.io/codecov/c/github/tinyauth/tinyauth.svg)](https://codecov.io/gh/tinyauth/tinyauth)
 
 This codebase implements a simple authentication and authorization system as a microservice.
 
@@ -19,11 +19,11 @@ This will automatically run any migrations.
 You can run tests with:
 
 ```
-docker-compose -f dev.yml run --rm flask py.test microauth/
+docker-compose -f dev.yml run --rm flask py.test tinyauth/
 ```
 
 And run flake8 with:
 
 ```
-docker-compose -f dev.yml run --rm flask flake8 microauth/
+docker-compose -f dev.yml run --rm flask flake8 tinyauth/
 ```

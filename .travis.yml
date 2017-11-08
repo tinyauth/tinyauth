@@ -11,8 +11,8 @@ install:
   - pip install -r requirements.txt
 
 script:
-  - py.test --cov=. microauth
-  - flake8 microauth
+  - py.test --cov=. tinyauth
+  - flake8 tinyauth
 
 after_success:
   - codecov

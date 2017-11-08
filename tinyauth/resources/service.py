@@ -15,7 +15,7 @@ authorize_parser.add_argument('context', type=dict, location='json', required=Tr
 
 @service_blueprint.route('/api/v1/authorize', methods=['POST'])
 def service_authorize():
-    internal_authorize('Authorize', f'arn:microauth:')
+    internal_authorize('Authorize', f'arn:tinyauth:')
 
     args = authorize_parser.parse_args()
 

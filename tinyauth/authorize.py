@@ -68,7 +68,7 @@ def internal_authorize(action, resource, ctx=None):
     context.update(ctx or {})
 
     authorized = _authorize(
-        'microauth:' + action,
+        'tinyauth:' + action,
         resource,
         request.headers,
         context,

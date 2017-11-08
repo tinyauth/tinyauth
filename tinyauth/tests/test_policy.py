@@ -1,6 +1,6 @@
 import unittest
 
-from microauth.policy import allow
+from tinyauth.policy import allow
 
 
 class TestSimplePolicy(unittest.TestCase):

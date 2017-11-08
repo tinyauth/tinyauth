@@ -7,7 +7,7 @@ RUN groupadd -r flask && useradd -r -g flask flask
 COPY ./requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
-COPY ./microauth /app/src/microauth
+COPY ./tinyauth /app/src/tinyauth
 
 COPY ./docker/flask/entrypoint.sh /entrypoint.sh
 RUN sed -i 's/\r//' /entrypoint.sh

@@ -1,10 +1,10 @@
 from flask import Blueprint, jsonify, make_response, request
 from flask_restful import Api, Resource, abort, fields, marshal, reqparse
 
-from microauth.app import db
-from microauth.authorize import internal_authorize
-from microauth.models import User
-from microauth.simplerest import build_response_for_request
+from tinyauth.app import db
+from tinyauth.authorize import internal_authorize
+from tinyauth.models import User
+from tinyauth.simplerest import build_response_for_request
 
 user_fields = {
     'id': fields.Integer,
@@ -25,13 +25,13 @@ class UserResource(Resource):
         return user
 
     def get(self, user_id):
-        internal_authorize('GetUser', f'arn:microauth:users/{user_id}')
+        internal_authorize('GetUser', f'arn:tinyauth:users/{user_id}')
 
         user = self._get_or_404(user_id)
         return jsonify(marshal(user, user_fields))
 
     def put(self, user_id):
-        internal_authorize('UpdateUser', f'arn:microauth:users/{user_id}')
+        internal_authorize('UpdateUser', f'arn:tinyauth:users/{user_id}')
 
         args = user_parser.parse_args()
 
@@ -44,7 +44,7 @@ class UserResource(Resource):
         return jsonify(marshal(user, user_fields))
 
     def delete(self, user_id):
-        internal_authorize('DeleteUser', f'arn:microauth:users/{user_id}')
+        internal_authorize('DeleteUser', f'arn:tinyauth:users/{user_id}')
 
         user = self._get_or_404(user_id)
         db.session.delete(user)
@@ -55,14 +55,14 @@ class UserResource(Resource):
 class UsersResource(Resource):
 
     def get(self):
-        internal_authorize('ListUsers', f'arn:microauth:users/')
+        internal_authorize('ListUsers', f'arn:tinyauth:users/')
 
         return build_response_for_request(User, request, user_fields)
 
     def post(self):
         args = user_parser.parse_args()
 
-        internal_authorize('CreateUser', f'arn:microauth:users/args["username"]')
+        internal_authorize('CreateUser', f'arn:tinyauth:users/args["username"]')
 
         user = User(
             username=args['username'],
