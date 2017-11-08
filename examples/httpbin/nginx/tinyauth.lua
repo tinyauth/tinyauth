@@ -53,15 +53,15 @@ end
 function _M.authorize_for_url(self, default_action, matches)
   for k, v in pairs(matches) do
     if req_matches_uri(v[1]) and req_matches_method(v[2]) then
-      return self.authorize_action(self, v[3])
+      return _M.authorize_for_action(self, v[3])
     end
   end
 
-  return self.authorize_for_action(default_action)
+  return _M.authorize_for_action(self, default_action)
 end
 
 
-function _M.authorize_action(self, action)
+function _M.authorize_for_action(self, action)
     local client = self.client
 
     local body = cjson.encode({
