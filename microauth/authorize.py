@@ -52,6 +52,7 @@ def _authorize(action, resource, headers, context):
 
     return {
         'Authorized': True,
+        'Identity': access_key.user.username,
     }
 
 
