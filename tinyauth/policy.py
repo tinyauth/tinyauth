@@ -54,6 +54,24 @@ def _match_condition(statement, context):
     return True
 
 
+def get_allowed_resources(policy, action, context=None):
+    allowed = []
+    denied = []
+
+    for statement in _get_list(policy, 'Statement'):
+        if not _match_action(statement, action):
+            continue
+        if not _match_condition(statement, context or {}):
+            continue
+
+        if statement['Effect'] == 'Deny':
+            denied.extend(_get_list(statement, 'Resource'))
+        else:
+            allowed.extend(_get_list(statement, 'Resource'))
+
+    return allowed, denied
+
+
 def allow(policy, action, resource, context=None):
     retval = "Default"
 
