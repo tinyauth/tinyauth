@@ -21,7 +21,7 @@ def upgrade():
     op.create_table('group_policy',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=128), nullable=True),
-    sa.Column('policy', sa.Variant(), nullable=True),
+    sa.Column('policy', postgresql.JSON(astext_type=sa.Text()), autoincrement=False, nullable=True),
     sa.Column('group_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['group_id'], ['group.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -29,7 +29,7 @@ def upgrade():
     op.create_table('user_policy',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=128), nullable=True),
-    sa.Column('policy', sa.Variant(), nullable=True),
+    sa.Column('policy', postgresql.JSON(astext_type=sa.Text()), autoincrement=False, nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
