@@ -4,6 +4,11 @@ import { List, Responsive, SimpleList, Create, Edit, EditButton, DeleteButton, S
 import {TabbedForm} from 'admin-on-rest/lib/mui';
 import {FormTab} from 'admin-on-rest/lib/mui';
 
+import AddUserToGroupButton from '../ui/AddUserToGroupButton';
+import { CardActions } from 'material-ui/Card';
+import { ListButton } from 'admin-on-rest/lib/mui';
+
+
 export const UserList = (props) => (
   <List {...props}>
     <Responsive
@@ -31,8 +36,16 @@ const UserTitle = ({ record }) => {
     return <span>User {record ? `"${record.username}"` : ''}</span>;
 };
 
+const UserEditActions = ({ basePath, data }) => (
+    <CardActions>
+        <ListButton basePath={basePath} />
+        <AddUserToGroupButton basePath={basePath} record={data} />
+        <DeleteButton basePath={basePath} record={data} />
+    </CardActions>
+);
+
 export const UserEdit = (props) => (
-  <Edit title={<UserTitle />} {...props}>
+  <Edit title={<UserTitle />} actions={<UserEditActions />} {...props}>
   {permissions => (
       <TabbedForm defaultValue={{ role: 'user' }}>
           <FormTab label="Summary">
