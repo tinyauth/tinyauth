@@ -6,12 +6,9 @@ import os
 import click
 from flask import Flask
 from flask.cli import FlaskGroup
-
 from flask_cors import CORS
 from flask_migrate import Migrate
-from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
-
 
 db = SQLAlchemy()
 
@@ -34,10 +31,8 @@ def create_app(info):
     app.register_blueprint(resources.user_blueprint)
     app.register_blueprint(resources.group_blueprint)
     app.register_blueprint(resources.service_blueprint)
-        
-    api = Api(app, prefix='/api/v1')
 
-    migrate = Migrate(app, db)
+    Migrate(app, db)
 
     return app
 
@@ -49,8 +44,8 @@ def cli():
 
 @cli.command()
 def createdevuser():
-    from .models import AccessKey, User, Policy, db
-    p = Policy(name='root', policy={'Statement': [{'Action': '*', 'Resource': '*', 'Effect': 'Allow'}]})
+    from .models import AccessKey, User, UserPolicy, db
+    p = UserPolicy(name='root', policy={'Statement': [{'Action': '*', 'Resource': '*', 'Effect': 'Allow'}]})
     db.session.add(p)
 
     u = User(username='root')

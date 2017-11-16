@@ -25,17 +25,6 @@ class StringyJSON(types.TypeDecorator):
 # connecting to 'sqlite'"
 MagicJSON = types.JSON().with_variant(StringyJSON, 'sqlite')
 
-user_policies = db.Table(
-    'user_policies',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('policy_id', db.Integer, db.ForeignKey('policy.id'), primary_key=True)
-)
-
-group_policies = db.Table(
-    'group_policies',
-    db.Column('group_id', db.Integer, db.ForeignKey('group.id'), primary_key=True),
-    db.Column('policy_id', db.Integer, db.ForeignKey('policy.id'), primary_key=True)
-)
 
 group_users = db.Table(
     'group_users',
@@ -44,30 +33,37 @@ group_users = db.Table(
 )
 
 
+class GroupPolicy(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128))
+    policy = db.Column(MagicJSON)
+    group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=False)
+
+    def __repr__(self):
+        return f'<GroupPolicy {self.name!r}>'
+
+
 class Group(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128))
 
-    policies = db.relationship(
-        'Policy',
-        secondary=group_policies,
-        lazy='subquery',
-        backref=db.backref('groups', lazy=True)
-    )
+    policies = db.relationship('GroupPolicy', backref='group', lazy=True)
 
     def __repr__(self):
         return f'<Group {self.name!r}>'
 
 
-class Policy(db.Model):
+class UserPolicy(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128))
     policy = db.Column(MagicJSON)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
-        return f'<Policy {self.name!r}>'
+        return f'<UserrPolicy {self.name!r}>'
 
 
 class User(db.Model):
@@ -82,13 +78,7 @@ class User(db.Model):
         backref=db.backref('users', lazy=True)
     )
 
-    policies = db.relationship(
-        'Policy',
-        secondary=user_policies,
-        lazy='subquery',
-        backref=db.backref('users', lazy=True)
-    )
-
+    policies = db.relationship('UserPolicy', backref='user', lazy=True)
     access_keys = db.relationship('AccessKey', backref='user', lazy=True)
 
     def __repr__(self):

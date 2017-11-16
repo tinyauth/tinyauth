@@ -41,6 +41,10 @@ def _authorize(action, resource, headers, context):
         'Statement': []
     }
 
+    for group in access_key.user.groups:
+        for p in group.policies:
+            policy['Statement'].extend(p.policy.get('Statement', []))
+
     for p in access_key.user.policies:
         policy['Statement'].extend(p.policy.get('Statement', []))
 

@@ -3,7 +3,7 @@ import json
 import unittest
 
 from tinyauth.app import create_app, db
-from tinyauth.models import AccessKey, Policy, User
+from tinyauth.models import AccessKey, User, UserPolicy
 
 
 class TestCase(unittest.TestCase):
@@ -28,7 +28,10 @@ class TestCase(unittest.TestCase):
         self._ctx.pop()
 
     def test_authorize_service(self):
-        policy = Policy(name='tinyauth', policy={
+        user = User(username='charles')
+        db.session.add(user)
+
+        policy = UserPolicy(name='tinyauth', user=user, policy={
             'Version': '2012-10-17',
             'Statement': [{
                 'Action': 'tinyauth:*',
@@ -41,10 +44,6 @@ class TestCase(unittest.TestCase):
             }]
         })
         db.session.add(policy)
-
-        user = User(username='charles')
-        user.policies.append(policy)
-        db.session.add(user)
 
         access_key = AccessKey(
             access_key_id='AKIDEXAMPLE',
@@ -74,10 +73,13 @@ class TestCase(unittest.TestCase):
             content_type='application/json',
         )
         assert response.status_code == 200
-        assert json.loads(response.get_data(as_text=True)) == {'Authorized': True}
+        assert json.loads(response.get_data(as_text=True)) == {'Authorized': True, 'Identity': 'charles'}
 
     def test_authorize_service_failure(self):
-        policy = Policy(name='tinyauth', policy={
+        user = User(username='charles')
+        db.session.add(user)
+
+        policy = UserPolicy(name='tinyauth', user=user, policy={
             'Version': '2012-10-17',
             'Statement': [{
                 'Action': 'tinyauth:*',
@@ -90,10 +92,6 @@ class TestCase(unittest.TestCase):
             }]
         })
         db.session.add(policy)
-
-        user = User(username='charles')
-        user.policies.append(policy)
-        db.session.add(user)
 
         access_key = AccessKey(
             access_key_id='AKIDEXAMPLE',

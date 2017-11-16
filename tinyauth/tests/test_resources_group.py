@@ -3,7 +3,7 @@ import json
 import unittest
 
 from tinyauth.app import create_app, db
-from tinyauth.models import AccessKey, Group, Policy, User
+from tinyauth.models import AccessKey, Group, User, UserPolicy
 
 
 class TestCase(unittest.TestCase):
@@ -50,7 +50,10 @@ class TestCase(unittest.TestCase):
         }
 
     def test_create_group_with_auth(self):
-        policy = Policy(name='tinyauth', policy={
+        user = User(username='charles')
+        db.session.add(user)
+
+        policy = UserPolicy(name='tinyauth', user=user, policy={
             'Version': '2012-10-17',
             'Statement': [{
                 'Action': 'tinyauth:*',
@@ -59,10 +62,6 @@ class TestCase(unittest.TestCase):
             }]
         })
         db.session.add(policy)
-
-        user = User(username='charles')
-        user.policies.append(policy)
-        db.session.add(user)
 
         access_key = AccessKey(
             access_key_id='AKIDEXAMPLE',
@@ -89,7 +88,10 @@ class TestCase(unittest.TestCase):
         assert json.loads(response.get_data(as_text=True)) == {'id': 1, 'name': 'devs'}
 
     def test_delete_group_with_auth_but_no_perms(self):
-        policy = Policy(name='tinyauth', policy={
+        user = User(username='charles')
+        db.session.add(user)
+
+        policy = UserPolicy(name='tinyauth', user=user, policy={
             'Version': '2012-10-17',
             'Statement': [{
                 'Action': 'tinyauth:DeleteUser',
@@ -98,10 +100,6 @@ class TestCase(unittest.TestCase):
             }]
         })
         db.session.add(policy)
-
-        user = User(username='charles')
-        user.policies.append(policy)
-        db.session.add(user)
 
         grp = Group(name='freddy')
         db.session.add(grp)
@@ -133,7 +131,10 @@ class TestCase(unittest.TestCase):
         }
 
     def test_delete_group_with_auth(self):
-        policy = Policy(name='tinyauth', policy={
+        user = User(username='charles')
+        db.session.add(user)
+
+        policy = UserPolicy(name='tinyauth', user=user, policy={
             'Version': '2012-10-17',
             'Statement': [{
                 'Action': 'tinyauth:*',
@@ -142,10 +143,6 @@ class TestCase(unittest.TestCase):
             }]
         })
         db.session.add(policy)
-
-        user = User(username='charles')
-        user.policies.append(policy)
-        db.session.add(user)
 
         access_key = AccessKey(
             access_key_id='AKIDEXAMPLE',
