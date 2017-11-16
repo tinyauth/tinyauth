@@ -15,7 +15,7 @@ import authClient from './authClient';
 import customRoutes from './customRoutes';
 
 const App = () => (
-  <Admin title="microauth" customRoutes={customRoutes} authClient={authClient} restClient={restClient}>
+  <Admin title="tinyauth" customRoutes={customRoutes} authClient={authClient} restClient={restClient}>
     <Resource name="users" list={UserList} create={UserCreate} edit={UserEdit} remove={Delete} icon={UserIcon} />
     <Resource name="groups" list={GroupList} create={GroupCreate} edit={GroupEdit} remove={Delete} icon={GroupIcon} />
   </Admin>
