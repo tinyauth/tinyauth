@@ -14,6 +14,8 @@ group_fields = {
 group_parser = reqparse.RequestParser()
 group_parser.add_argument('name', type=str, location='json', required=True)
 
+group_blueprint = Blueprint('group', __name__)
+
 
 class GroupResource(Resource):
 
@@ -73,7 +75,12 @@ class GroupsResource(Resource):
         return jsonify(marshal(group, group_fields))
 
 
-group_blueprint = Blueprint('group', __name__)
+@group_blueprint.route('/api/v1/groups/<group_id>/add-user', methods=['POST'])
+def add_user_to_group(group_id):
+    internal_authorize('AddUserToGroup', f'arn:tinyauth:')
+    return jsonify({})
+
+
 group_api = Api(group_blueprint, prefix='/api/v1')
 group_api.add_resource(GroupsResource, '/groups')
 group_api.add_resource(GroupResource, '/groups/<group_id>')

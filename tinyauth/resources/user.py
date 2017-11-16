@@ -15,6 +15,8 @@ user_fields = {
 user_parser = reqparse.RequestParser()
 user_parser.add_argument('username', type=str, location='json', required=True)
 
+user_blueprint = Blueprint('user', __name__)
+
 
 class UserResource(Resource):
 
@@ -74,7 +76,6 @@ class UsersResource(Resource):
         return jsonify(marshal(user, user_fields))
 
 
-user_blueprint = Blueprint('user', __name__)
 user_api = Api(user_blueprint, prefix='/api/v1')
 user_api.add_resource(UsersResource, '/users')
 user_api.add_resource(UserResource, '/users/<user_id>')
