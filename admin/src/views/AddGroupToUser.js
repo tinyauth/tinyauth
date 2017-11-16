@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 
-import { Card, CardText, CardActions } from 'material-ui/Card';
+import { Card, CardText } from 'material-ui/Card';
 import ActionCheck from 'material-ui/svg-icons/action/check-circle';
 import AlertError from 'material-ui/svg-icons/alert/error-outline';
 import RaisedButton from 'material-ui/RaisedButton';
@@ -10,51 +11,42 @@ import ChipInput from 'material-ui-chip-input'
 
 import { ViewTitle } from 'admin-on-rest';
 import { crudGetOne as crudGetOneAction } from 'admin-on-rest/lib/actions/dataActions';
+import { showNotification } from 'admin-on-rest';
+import { push } from 'react-router-redux';
+
+import PropTypes from 'prop-types';
+
+import { request } from '../restClient';
 
 
 class AddGroupToUser extends Component {
     constructor(props) {
         super(props);
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.goBack = this.goBack.bind(this);
+        this.handleAddUserToGroup = this.handleAddUserToGroup.bind(this);
+        this.handleCancel = this.handleCancel.bind(this);
     }
 
     getBasePath() {
         const { location } = this.props;
         return location.pathname
             .split('/')
-            .slice(0, -2)
+            .slice(0, -1)
             .join('/');
     }
 
-    handleSubmit(event) {
-        event.preventDefault();
+    handleAddUserToGroup(event) {
+        const { dispatch } = this.props;
+        const group = 1;
+        const user = this.props.match.params.user;
 
-        const token = window.btoa(localStorage.getItem('token'));
-
-        var headers = new Headers({
-          Accept: 'application/json',
-          Authorization: `Basic ${token}`,
-        });
-
-        console.log(this.props);
-        var d = fetch(
-          `http://localhost:8000/api/v1/groups/1/add-user`,
-          {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify({
-              'user': this.props.match.params.user,
-            }) 
-          }
-        )
-        
-        d.then(response => response.json()).then(json => console.log(json));
-        // .then(json => dispatch(crudGetOneAction("users", this.props.match.params.user, this.getBasePath())));
-        console.log('Done');
+        request('POST', `/groups/${group}/add-user`, {user: user})
+          .then(res => dispatch(crudGetOneAction("users", user)))
+          .then(res => dispatch(crudGetOneAction("groups", group)))
+          .then(res => dispatch(showNotification("User added to group")))
+          .then(res => dispatch(push(this.getBasePath())));
     }
 
-    goBack() {
+    handleCancel() {
         this.props.history.goBack();
     }
 
@@ -70,13 +62,13 @@ class AddGroupToUser extends Component {
                       type="submit"
                       label="Add"
                       icon={<ActionCheck />}
-                      onClick={this.handleSubmit}
+                      onClick={this.handleAddUserToGroup}
                       primary
                   />
                   <RaisedButton
                       label="Cancel"
                       icon={<AlertError />}
-                      onClick={this.goBack}
+                      onClick={this.handleCancel}
                   />
               </ToolbarGroup>
           </Toolbar>
@@ -84,4 +76,8 @@ class AddGroupToUser extends Component {
     };
 };
 
-export default AddGroupToUser;
+AddGroupToUser.propTypes = {
+    dispatch: PropTypes.func.isRequired,
+};
+
+export default connect()(AddGroupToUser);

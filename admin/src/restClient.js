@@ -9,5 +9,13 @@ const httpClient = (url, options = {}) => {
     return fetchUtils.fetchJson(url, options);
 }
 
+export const request = (method, uri, body=null) => {
+    let options = {method: method};
+    if (body) {
+        options['body'] = JSON.stringify(body);
+    }
+    return httpClient(window.API_ENDPOINT_URL + uri, options);
+}
+
 const restClient = simpleRestClient(window.API_ENDPOINT_URL, httpClient);
 export default (type, resource, params) => new Promise(resolve => setTimeout(() => resolve(restClient(type, resource, params)), 500));
