@@ -27,29 +27,7 @@ class TestCase(unittest.TestCase):
         db.drop_all()
         self._ctx.pop()
 
-    def test_get_groups_no_users(self):
-        response = self.client.get('/api/v1/groups')
-        assert response.status_code == 200
-        assert response.get_data(as_text=True) == '[]\n'
-        assert b''.join(response.response) == b'[]\n'
-
-    def test_create_group_noauth(self):
-        response = self.client.post(
-            '/api/v1/groups',
-            data=json.dumps({
-                'name': 'devs',
-            }),
-            content_type='application/json',
-        )
-        assert response.status_code == 401
-        assert json.loads(response.get_data(as_text=True)) == {
-            'message': {
-                'Authorized': False,
-                'ErrorCode': 'NoSuchKey',
-            }
-        }
-
-    def test_create_group_with_auth(self):
+    def fixture_charles(self):
         user = User(username='charles')
         db.session.add(user)
 
@@ -71,6 +49,41 @@ class TestCase(unittest.TestCase):
         db.session.add(access_key)
 
         db.session.commit()
+
+    def test_get_groups_no_groups(self):
+        self.fixture_charles()
+
+        response = self.client.get(
+            '/api/v1/groups',
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                ),
+            }
+        )
+
+        assert response.status_code == 200
+        assert response.get_data(as_text=True) == '[]\n'
+        assert b''.join(response.response) == b'[]\n'
+
+    def test_create_group_noauth(self):
+        response = self.client.post(
+            '/api/v1/groups',
+            data=json.dumps({
+                'name': 'devs',
+            }),
+            content_type='application/json',
+        )
+        assert response.status_code == 401
+        assert json.loads(response.get_data(as_text=True)) == {
+            'message': {
+                'Authorized': False,
+                'ErrorCode': 'NoSuchKey',
+            }
+        }
+
+    def test_create_group_with_auth(self):
+        self.fixture_charles()
 
         response = self.client.post(
             '/api/v1/groups',

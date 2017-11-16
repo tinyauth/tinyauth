@@ -27,29 +27,7 @@ class TestCase(unittest.TestCase):
         db.drop_all()
         self._ctx.pop()
 
-    def test_get_users_no_users(self):
-        response = self.client.get('/api/v1/users')
-        assert response.status_code == 200
-        assert response.get_data(as_text=True) == '[]\n'
-        assert b''.join(response.response) == b'[]\n'
-
-    def test_create_user_noauth(self):
-        response = self.client.post(
-            '/api/v1/users',
-            data=json.dumps({
-                'username': 'freddy',
-            }),
-            content_type='application/json',
-        )
-        assert response.status_code == 401
-        assert json.loads(response.get_data(as_text=True)) == {
-            'message': {
-                'Authorized': False,
-                'ErrorCode': 'NoSuchKey',
-            }
-        }
-
-    def test_create_user_with_auth(self):
+    def fixture_charles(self):
         user = User(username='charles')
         db.session.add(user)
 
@@ -71,6 +49,44 @@ class TestCase(unittest.TestCase):
         db.session.add(access_key)
 
         db.session.commit()
+
+    def test_list_users(self):
+        self.fixture_charles()
+
+        response = self.client.get(
+            '/api/v1/users',
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                ),
+            }
+        )
+
+        assert response.status_code == 200
+        assert json.loads(response.get_data(as_text=True)) == [{
+            'groups': [],
+            'id': 1,
+            'username': 'charles',
+        }]
+
+    def test_create_user_noauth(self):
+        response = self.client.post(
+            '/api/v1/users',
+            data=json.dumps({
+                'username': 'freddy',
+            }),
+            content_type='application/json',
+        )
+        assert response.status_code == 401
+        assert json.loads(response.get_data(as_text=True)) == {
+            'message': {
+                'Authorized': False,
+                'ErrorCode': 'NoSuchKey',
+            }
+        }
+
+    def test_create_user_with_auth(self):
+        self.fixture_charles()
 
         response = self.client.post(
             '/api/v1/users',
