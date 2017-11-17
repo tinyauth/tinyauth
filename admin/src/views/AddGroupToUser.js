@@ -7,7 +7,7 @@ import AlertError from 'material-ui/svg-icons/alert/error-outline';
 import RaisedButton from 'material-ui/RaisedButton';
 import { Toolbar, ToolbarGroup } from 'material-ui/Toolbar';
 
-import ChipInput from 'material-ui-chip-input'
+import TextField from 'material-ui/TextField';
 
 import { ViewTitle } from 'admin-on-rest';
 import { crudGetOne as crudGetOneAction } from 'admin-on-rest/lib/actions/dataActions';
@@ -22,6 +22,13 @@ import { request } from '../restClient';
 class AddGroupToUser extends Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+          'group': '',
+          'submitting': false,
+          'pristine': true,
+        };
+
         this.handleAddUserToGroup = this.handleAddUserToGroup.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
     }
@@ -34,16 +41,33 @@ class AddGroupToUser extends Component {
             .join('/');
     }
 
-    handleAddUserToGroup(event) {
-        const { dispatch } = this.props;
-        const group = 1;
-        const user = this.props.match.params.user;
+    async handleAddUserToGroup(event) {
+      const { dispatch } = this.props;
+      const group = this.state.group;
+      const user = this.props.match.params.user;
 
-        request('POST', `/groups/${group}/add-user`, {user: user})
-          .then(res => dispatch(crudGetOneAction("users", user)))
-          .then(res => dispatch(crudGetOneAction("groups", group)))
-          .then(res => dispatch(showNotification("User added to group")))
-          .then(res => dispatch(push(this.getBasePath())));
+      this.setState({'submitting': true});
+
+      try {
+        let { status } = await request('POST', `/groups/${group}/add-user`, {user: user});
+
+        if (status === 200) {
+          // Referesh the user/group data as the user should now show as being part of the group
+          dispatch(crudGetOneAction("users", user));
+          dispatch(crudGetOneAction("groups", group));
+
+          // Let the user know it worked
+          dispatch(showNotification("User added to group"));
+
+          // Bounce back to the user detail view
+          dispatch(push(this.getBasePath()));
+        } else {
+          dispatch(showNotification("Unhandled server error. Please try again laster."));
+        }
+      }
+      finally {
+        this.setState({'submitting': false})
+      }
     }
 
     handleCancel() {
@@ -54,7 +78,12 @@ class AddGroupToUser extends Component {
       return <Card>
           <ViewTitle title="Add User To Group" />
           <CardText>
-              <ChipInput defaultValue={['foo', 'bar']}/>
+              <TextField
+                floatingLabelText="Group"
+                hintText="Group"
+                errorText=""
+                onChange={ev => this.setState({group: ev.target.value, pristine: false})}
+                />
           </CardText>
           <Toolbar>
               <ToolbarGroup>
@@ -63,11 +92,13 @@ class AddGroupToUser extends Component {
                       label="Add"
                       icon={<ActionCheck />}
                       onClick={this.handleAddUserToGroup}
+                      disabled={this.state.submitting || this.state.pristine}
                       primary
                   />
                   <RaisedButton
                       label="Cancel"
                       icon={<AlertError />}
+                      disabled={this.state.submitting}
                       onClick={this.handleCancel}
                   />
               </ToolbarGroup>
