@@ -78,15 +78,15 @@ class UserPoliciesResource(Resource):
         internal_authorize('CreateUserPolicy', f'arn:tinyauth:users/args["username"]')
 
         policy = UserPolicy(
-            user_id = user_id,
+            user_id=user_id,
             name=args['name'],
             policy=json.loads(args['policy']),
         )
 
-        db.session.add(user)
+        db.session.add(policy)
         db.session.commit()
 
-        return jsonify(marshal(user, user_policy_fields))
+        return jsonify(marshal(policy, user_policy_fields))
 
 
 user_policy_api = Api(user_policy_blueprint, prefix='/api/v1')

@@ -1,14 +1,12 @@
 import React from 'react';
-import { List, Responsive, SimpleList, Create, Edit, EditButton, DeleteButton, SimpleForm, Datagrid, TextField, DisabledInput, TextInput, ReferenceManyField, ReferenceArrayField, ReferenceArrayInput, SelectArrayInput, SingleFieldList, ChipField } from 'admin-on-rest/lib/mui';
-
-import {TabbedForm} from 'admin-on-rest/lib/mui';
-import {FormTab} from 'admin-on-rest/lib/mui';
+import { List, Responsive, SimpleList, Create, Edit, EditButton, DeleteButton, SimpleForm, Datagrid, TextField, DisabledInput, TextInput,  ReferenceArrayField, ReferenceArrayInput, SelectArrayInput, SingleFieldList, ChipField } from 'admin-on-rest/lib/mui';
 
 import AddUserToGroupButton from '../ui/AddUserToGroupButton';
 import { CardActions } from 'material-ui/Card';
 import { ListButton } from 'admin-on-rest/lib/mui';
 
 import PolicyList from '../ui/PolicyList';
+import AccessKeyList from '../ui/AccessKeyList';
 
 
 export const UserList = (props) => (
@@ -53,7 +51,10 @@ export const UserEdit = (props) => (
         <h1>User Details</h1>
         <DisabledInput source="id" />
         <TextInput label="Username" source="username" validation={{ required: true }} />
-        
+
+        <h1>Access Keys</h1>
+        <AccessKeyList />
+
         <h1>Groups</h1>
         <ReferenceArrayField label="" source="groups" reference="groups">
           <Datagrid sort={{ field: 'name', order: 'DESC' }}>
@@ -61,7 +62,7 @@ export const UserEdit = (props) => (
             <EditButton />
           </Datagrid>
         </ReferenceArrayField>
-        
+
         <h1>Policies</h1>
         <PolicyList />
       </SimpleForm>

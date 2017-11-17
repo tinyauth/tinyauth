@@ -45,7 +45,7 @@ class EditUserPolicy extends Component {
             .slice(0, -3)
             .join('/');
     }
-    
+
     async componentWillMount() {
       try {
         const response = await request('GET', '/users/1/policies/1');
@@ -62,9 +62,8 @@ class EditUserPolicy extends Component {
 
     async handleAddUserToGroup(event) {
       const { dispatch } = this.props;
-      const group = this.state.group;
       const user = this.props.match.params.user;
-      
+
       const {id, name, policy} = this.state;
 
       this.setState({'submitting': true});
