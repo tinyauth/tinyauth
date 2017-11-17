@@ -75,7 +75,7 @@ class UserPoliciesResource(Resource):
     def post(self, user_id):
         args = user_policy_parser.parse_args()
 
-        internal_authorize('CreateUserPolicy', f'arn:tinyauth:users/args["username"]')
+        internal_authorize('CreateUserPolicy', f'arn:tinyauth:users/args["name"]')
 
         policy = UserPolicy(
             user_id=user_id,
