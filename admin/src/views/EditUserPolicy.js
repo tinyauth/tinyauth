@@ -10,7 +10,6 @@ import { Toolbar, ToolbarGroup } from 'material-ui/Toolbar';
 import TextField from 'material-ui/TextField';
 
 import { ViewTitle } from 'admin-on-rest';
-import { crudGetOne as crudGetOneAction } from 'admin-on-rest/lib/actions/dataActions';
 import { showNotification } from 'admin-on-rest';
 import { push } from 'react-router-redux';
 
@@ -18,13 +17,19 @@ import PropTypes from 'prop-types';
 
 import { request } from '../restClient';
 
+const policyEditorStyle = {
+  fontFamily: 'Menlo, Courier New, Mono',
+}
 
 class EditUserPolicy extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
-          'group': '',
+          'id': '',
+          'name': '',
+          'policy': '',
+          'isLoading': true,
           'submitting': false,
           'pristine': true,
         };
@@ -37,27 +42,42 @@ class EditUserPolicy extends Component {
         const { location } = this.props;
         return location.pathname
             .split('/')
-            .slice(0, -1)
+            .slice(0, -3)
             .join('/');
+    }
+    
+    async componentWillMount() {
+      try {
+        const response = await request('GET', '/users/1/policies/1');
+        this.setState({
+          'isLoading': false,
+          'id': response.json.id,
+          'name': response.json.name,
+          'policy': JSON.stringify(JSON.parse(response.json.policy), null, 2),
+        })
+      } catch (e) {
+        this.setState({'isLoading': false});
+      }
     }
 
     async handleAddUserToGroup(event) {
       const { dispatch } = this.props;
       const group = this.state.group;
       const user = this.props.match.params.user;
+      
+      const {id, name, policy} = this.state;
 
       this.setState({'submitting': true});
 
       try {
-        let { status } = await request('POST', `/groups/${group}/add-user`, {user: user});
+        let { status } = await request('PUT', `/users/${user}/policies/${id}`, {
+          name: name,
+          policy: policy
+        });
 
         if (status === 200) {
-          // Referesh the user/group data as the user should now show as being part of the group
-          dispatch(crudGetOneAction("users", user));
-          dispatch(crudGetOneAction("groups", group));
-
           // Let the user know it worked
-          dispatch(showNotification("User added to group"));
+          dispatch(showNotification("Saved policy"));
 
           // Bounce back to the user detail view
           dispatch(push(this.getBasePath()));
@@ -76,20 +96,34 @@ class EditUserPolicy extends Component {
 
     render() {
       return <Card>
-          <ViewTitle title="Add User To Group" />
+          <ViewTitle title="Edit Policy" />
           <CardText>
               <TextField
-                floatingLabelText="Group"
-                hintText="Group"
+                floatingLabelText="Name"
+                hintText="Name"
                 errorText=""
-                onChange={ev => this.setState({group: ev.target.value, pristine: false})}
+                value={this.state.name}
+                onChange={ev => this.setState({name: ev.target.value, pristine: false})}
                 />
+
+                <br />
+
+                <TextField
+                  inputStyle={policyEditorStyle}
+                  floatingLabelText="Policy"
+                  hintText="Policy"
+                  errorText=""
+                  value={this.state.policy}
+                  onChange={ev => this.setState({policy: ev.target.value, pristine: false})}
+                  multiLine={true}
+                  rows={10}
+                  />
           </CardText>
           <Toolbar>
               <ToolbarGroup>
                   <RaisedButton
                       type="submit"
-                      label="Add"
+                      label="Save"
                       icon={<ActionCheck />}
                       onClick={this.handleAddUserToGroup}
                       disabled={this.state.submitting || this.state.pristine}
