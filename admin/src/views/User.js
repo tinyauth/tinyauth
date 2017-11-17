@@ -1,5 +1,5 @@
 import React from 'react';
-import { List, Responsive, SimpleList, Create, Edit, EditButton, DeleteButton, SimpleForm, Datagrid, TextField, DisabledInput, TextInput, ReferenceArrayField, ReferenceArrayInput, SelectArrayInput, SingleFieldList, ChipField } from 'admin-on-rest/lib/mui';
+import { List, Responsive, SimpleList, Create, Edit, EditButton, DeleteButton, SimpleForm, Datagrid, TextField, DisabledInput, TextInput, ReferenceManyField, ReferenceArrayField, ReferenceArrayInput, SelectArrayInput, SingleFieldList, ChipField } from 'admin-on-rest/lib/mui';
 
 import {TabbedForm} from 'admin-on-rest/lib/mui';
 import {FormTab} from 'admin-on-rest/lib/mui';
@@ -7,6 +7,8 @@ import {FormTab} from 'admin-on-rest/lib/mui';
 import AddUserToGroupButton from '../ui/AddUserToGroupButton';
 import { CardActions } from 'material-ui/Card';
 import { ListButton } from 'admin-on-rest/lib/mui';
+
+import PolicyList from '../ui/PolicyList';
 
 
 export const UserList = (props) => (
@@ -47,20 +49,22 @@ const UserEditActions = ({ basePath, data }) => (
 export const UserEdit = (props) => (
   <Edit title={<UserTitle />} actions={<UserEditActions />} {...props}>
   {permissions => (
-      <TabbedForm defaultValue={{ role: 'user' }}>
-          <FormTab label="Summary">
-              <DisabledInput source="id" />
-              <TextInput label="Username" source="username" validation={{ required: true }} />
-          </FormTab>
-          <FormTab label="Groups">
-          <ReferenceArrayField label="" source="groups" reference="groups">
-              <Datagrid sort={{ field: 'name', order: 'DESC' }}>
-                  <TextField label="Group Name" source="name" />
-                  <EditButton />
-              </Datagrid>
-          </ReferenceArrayField>
-          </FormTab>
-      </TabbedForm>
+      <SimpleForm>
+        <h1>User Details</h1>
+        <DisabledInput source="id" />
+        <TextInput label="Username" source="username" validation={{ required: true }} />
+        
+        <h1>Groups</h1>
+        <ReferenceArrayField label="" source="groups" reference="groups">
+          <Datagrid sort={{ field: 'name', order: 'DESC' }}>
+            <TextField label="Group Name" source="name" />
+            <EditButton />
+          </Datagrid>
+        </ReferenceArrayField>
+        
+        <h1>Policies</h1>
+        <PolicyList />
+      </SimpleForm>
   )}
   </Edit>
 );
