@@ -69,8 +69,12 @@ class UserPoliciesResource(Resource):
     def get(self, user_id):
         internal_authorize('ListUserPolicies', f'arn:tinyauth:users/')
 
-        # FIXME Need to filter by user_id here
-        return build_response_for_request(UserPolicy, request, user_policy_fields)
+        return build_response_for_request(
+            UserPolicy,
+            request,
+            user_policy_fields,
+            UserPolicy.query.filter(UserPolicy.user_id == user_id),
+        )
 
     def post(self, user_id):
         args = user_policy_parser.parse_args()

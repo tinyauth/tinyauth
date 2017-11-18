@@ -56,8 +56,12 @@ class AccessKeysResource(Resource):
     def get(self, user_id):
         internal_authorize('ListAccessKeys', f'arn:tinyauth:users/')
 
-        # FIXME Need to filter by user_id here
-        return build_response_for_request(AccessKey, request, access_key_fields)
+        return build_response_for_request(
+            AccessKey,
+            request,
+            access_key_fields,
+            AccessKey.query.filter(AccessKey.user_id == user_id),
+        )
 
     def post(self, user_id):
         internal_authorize('CreateAccessKey', f'arn:tinyauth:users/{user_id}')

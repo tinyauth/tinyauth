@@ -15,7 +15,7 @@ import GenericButton from './GenericButton'
 import { request } from '../restClient';
 
 
-class keyList extends Component {
+class AccessKeyList extends Component {
 
   constructor(props) {
     super(props);
@@ -28,7 +28,7 @@ class keyList extends Component {
 
   async componentWillMount() {
     try {
-      const response = await request('GET', '/users/1/keys');
+      const response = await request('GET', `/users/${this.props.record.id}/keys`);
       this.setState({
         'isLoading': false,
         'keys': response.json,
@@ -40,6 +40,7 @@ class keyList extends Component {
 
   render() {
     const {isLoading, keys} = this.state;
+    const { id } = this.props.record.id;
 
     if (isLoading) {
       return <div>Loading...</div>;
@@ -63,7 +64,7 @@ class keyList extends Component {
             <TableRowColumn>
                <GenericButton
                  label="Delete"
-                 to={`/users/1/keys/${key.id}/delete`}
+                 to={`/users/${id}/keys/${key.id}/delete`}
                  icon={<ButtonIcon />}
                 />
             </TableRowColumn>
@@ -74,8 +75,8 @@ class keyList extends Component {
   };
 };
 
-keyList.propTypes = {
-    dispatch: PropTypes.func.isRequired,
+AccessKeyList.propTypes = {
+  dispatch: PropTypes.func.isRequired,
 };
 
-export default connect()(keyList);
+export default connect()(AccessKeyList);

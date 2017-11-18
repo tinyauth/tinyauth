@@ -25,10 +25,10 @@ class PolicyList extends Component {
       'policies': [],
     };
   }
-  
+
   async componentWillMount() {
     try {
-      const response = await request('GET', '/users/1/policies');
+      const response = await request('GET', `/users/${this.props.record.id}/policies`);
       this.setState({
         'isLoading': false,
         'policies': response.json,
@@ -40,11 +40,11 @@ class PolicyList extends Component {
 
   render() {
     const {isLoading, policies} = this.state;
-    
+
     if (isLoading) {
       return <div>Loading...</div>;
     }
-    
+
     if (policies.length === 0) {
       return <div>There are no policies attached to this user or you do not have permission to view them</div>;
     }
@@ -63,12 +63,12 @@ class PolicyList extends Component {
             <TableRowColumn>
               <GenericButton
                 label="Edit"
-                to={`/users/1/policies/${policy.id}/edit`}
+                to={`/users/${this.props.record.id}/policies/${policy.id}/edit`}
                 icon={<ButtonIcon />}
                />
                <GenericButton
                  label="Delete"
-                 to={`/users/1/policies/${policy.id}/delete`}
+                 to={`/users/${this.props.record.id}/policies/${policy.id}/delete`}
                  icon={<ButtonIcon />}
                 />
             </TableRowColumn>
@@ -80,7 +80,7 @@ class PolicyList extends Component {
 };
 
 PolicyList.propTypes = {
-    dispatch: PropTypes.func.isRequired,
+  dispatch: PropTypes.func.isRequired,
 };
 
 export default connect()(PolicyList);
