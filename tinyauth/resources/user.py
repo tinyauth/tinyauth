@@ -38,7 +38,7 @@ class UserResource(Resource):
         args = user_parser.parse_args()
 
         user = self._get_or_404(user_id)
-        user.name = args['username']
+        user.username = args['username']
         db.session.add(user)
 
         db.session.commit()

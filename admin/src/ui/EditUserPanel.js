@@ -10,7 +10,7 @@ import TextField from 'material-ui/TextField';
 
 import { ViewTitle } from 'admin-on-rest';
 import { showNotification } from 'admin-on-rest';
-import { push } from 'react-router-redux';
+import { crudGetOne as crudGetOneAction } from 'admin-on-rest/lib/actions/dataActions';
 
 import PropTypes from 'prop-types';
 
@@ -33,14 +33,6 @@ class EditUserPanel extends Component {
         this.handleCancel = this.handleCancel.bind(this);
     }
 
-    getBasePath() {
-        const { location } = this.props;
-        return location.pathname
-            .split('/')
-            .slice(0, -3)
-            .join('/');
-    }
-
     async componentWillMount() {
       try {
         const { user } = this.props;
@@ -57,9 +49,7 @@ class EditUserPanel extends Component {
     }
 
     async handleAddUserToGroup(event) {
-      const { dispatch } = this.props;
-      const user = this.props.match.params.user;
-
+      const { dispatch, user } = this.props;
       const { username } = this.state;
 
       this.setState({'submitting': true});
@@ -72,15 +62,16 @@ class EditUserPanel extends Component {
         if (status === 200) {
           // Let the user know it worked
           dispatch(showNotification("Saved user"));
-
-          // Bounce back to the user detail view
-          dispatch(push(this.getBasePath()));
+          dispatch(crudGetOneAction("users", user));
         } else {
           dispatch(showNotification("Unhandled server error. Please try again laster."));
         }
       }
       finally {
-        this.setState({'submitting': false})
+        this.setState({
+          'submitting': false,
+          'pristine': true,
+        })
       }
     }
 

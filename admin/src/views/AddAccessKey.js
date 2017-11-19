@@ -11,7 +11,6 @@ import TextField from 'material-ui/TextField';
 
 import { ViewTitle } from 'admin-on-rest';
 import { showNotification } from 'admin-on-rest';
-import { push } from 'react-router-redux';
 
 import PropTypes from 'prop-types';
 
@@ -49,8 +48,6 @@ class AddAccessKey extends Component {
       const { dispatch } = this.props;
       const user = this.props.match.params.user;
 
-      const {name, policy} = this.state;
-
       this.setState({'submitting': true});
 
       try {
@@ -86,7 +83,6 @@ class AddAccessKey extends Component {
                 floatingLabelText="Access Key Id"
                 hintText="Access Key Id"
                 value={this.state.access_key_id}
-                onChange={ev => this.setState({name: ev.target.value, pristine: false})}
                 />
 
                 <br />
@@ -96,7 +92,6 @@ class AddAccessKey extends Component {
                   floatingLabelText="Secret Access Key"
                   hintText="Secret Access Key"
                   value={this.state.secret_access_key}
-                  onChange={ev => this.setState({policy: ev.target.value, pristine: false})}
                   />
           </CardText>
           <Toolbar>
