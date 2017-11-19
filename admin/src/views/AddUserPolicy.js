@@ -21,19 +21,10 @@ const policyEditorStyle = {
   fontFamily: 'Menlo, Courier New, Mono',
 }
 
-class EditUserPolicy extends Component {
+class AddUserPolicy extends Component {
     constructor(props) {
         super(props);
-
-        this.state = {
-          'name': '',
-          'policy': '',
-          'isLoading': true,
-          'submitting': false,
-          'pristine': true,
-        };
-
-        this.handleEditUserPolicy = this.handleEditUserPolicy.bind(this);
+        this.handleAddPolicyToUser = this.handleAddPolicyToUser.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
     }
 
@@ -41,34 +32,31 @@ class EditUserPolicy extends Component {
         const { location } = this.props;
         return location.pathname
             .split('/')
-            .slice(0, -3)
+            .slice(0, -1)
             .join('/');
     }
 
-    async componentWillMount() {
-      const { user, policy } = this.props.match.params;
-
-      try {
-        const response = await request('GET', `/users/${user}/policies/${policy}`);
-        this.setState({
-          'isLoading': false,
-          'name': response.json.name,
-          'policy': JSON.stringify(JSON.parse(response.json.policy), null, 2),
-        })
-      } catch (e) {
-        this.setState({'isLoading': false});
-      }
+    componentWillMount() {
+      this.setState({
+        'id': '',
+        'name': '',
+        'policy': '',
+        'isLoading': false,
+        'submitting': false,
+        'pristine': true,
+      });
     }
 
-    async handleEditUserPolicy(event) {
+    async handleAddPolicyToUser(event) {
       const { dispatch } = this.props;
-      const { user, policy: id } = this.props.match.params;
-      const { name, policy } = this.state;
+      const user = this.props.match.params.user;
+
+      const {name, policy} = this.state;
 
       this.setState({'submitting': true});
 
       try {
-        let { status } = await request('PUT', `/users/${user}/policies/${id}`, {
+        let { status } = await request('POST', `/users/${user}/policies`, {
           name: name,
           policy: policy
         });
@@ -123,7 +111,7 @@ class EditUserPolicy extends Component {
                       type="submit"
                       label="Save"
                       icon={<ActionCheck />}
-                      onClick={this.handleEditUserPolicy}
+                      onClick={this.handleAddPolicyToUser}
                       disabled={this.state.submitting || this.state.pristine}
                       primary
                   />
@@ -139,8 +127,8 @@ class EditUserPolicy extends Component {
     };
 };
 
-EditUserPolicy.propTypes = {
+AddUserPolicy.propTypes = {
     dispatch: PropTypes.func.isRequired,
 };
 
-export default connect()(EditUserPolicy);
+export default connect()(AddUserPolicy);

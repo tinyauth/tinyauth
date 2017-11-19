@@ -97,8 +97,8 @@ class PolicyList extends Component {
       <Toolbar>
           <ToolbarGroup>
             <RaisedButton
-              label="Add to group"
-              to={`/users/${user}/add-to-group`}
+              label="Add policy"
+              to={`/users/${user}/policies/add`}
               icon={<ContentAdd />}
               primary
              />

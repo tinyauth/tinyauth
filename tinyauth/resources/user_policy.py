@@ -60,6 +60,7 @@ class UserPolicyResource(Resource):
 
         policy = self._get_or_404(user_id, policy_id)
         db.session.delete(policy)
+        db.session.commit()
 
         return make_response(jsonify({}), 201, [])
 
