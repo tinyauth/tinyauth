@@ -92,7 +92,7 @@ class AccessKeyList extends Component {
           <ToolbarGroup>
             <RaisedButton
               label="Add Access Key"
-              to={`/users/${user}/add-access-key`}
+              to={`/users/${user}/keys/add`}
               icon={<ContentAdd />}
               primary
              />

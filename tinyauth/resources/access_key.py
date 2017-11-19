@@ -31,22 +31,23 @@ access_key_blueprint = Blueprint('access_key', __name__)
 class AccessKeyResource(Resource):
 
     def _get_or_404(self, user_id, key_id):
-        policy = AccessKey.query.filter(AccessKey.user_id == user_id, AccessKey.id == key_id).first()
-        if not policy:
-            abort(404, message=f'Policy {key_id} for user {user_id} does not exist')
-        return policy
+        access_key = AccessKey.query.filter(AccessKey.user_id == user_id, AccessKey.id == key_id).first()
+        if not access_key:
+            abort(404, message=f'Access key {key_id} for user {user_id} does not exist')
+        return access_key
 
     def get(self, user_id, key_id):
         internal_authorize('GetAccessKey', f'arn:tinyauth:users/{user_id}')
 
-        policy = self._get_or_404(user_id, key_id)
-        return jsonify(marshal(policy, access_key_fields))
+        access_key = self._get_or_404(user_id, key_id)
+        return jsonify(marshal(access_key, access_key_fields))
 
     def delete(self, user_id, key_id):
         internal_authorize('DeleteAccessKey', f'arn:tinyauth:users/{user_id}')
 
-        policy = self._get_or_404(user_id, key_id)
-        db.session.delete(policy)
+        access_key = self._get_or_404(user_id, key_id)
+        db.session.delete(access_key)
+        db.session.commit()
 
         return make_response(jsonify({}), 201, [])
 
