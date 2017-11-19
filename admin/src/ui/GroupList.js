@@ -15,6 +15,7 @@ import {
   CardText,
 } from 'material-ui/Card'
 import { Toolbar, ToolbarGroup } from 'material-ui/Toolbar';
+
 import ContentAdd from 'material-ui/svg-icons/content/add';
 import ButtonIcon from 'material-ui/svg-icons/av/playlist-add';
 import GenericButton from './GenericButton';
@@ -22,57 +23,52 @@ import RaisedButton from './RaisedButton';
 import { request } from '../restClient';
 
 
-class AccessKeyList extends Component {
+class GroupList extends Component {
 
   constructor(props) {
     super(props);
 
     this.state = {
       'isLoading': true,
-      'keys': [],
+      'groups': [],
     };
   }
 
   async componentWillMount() {
-    try {
-      const { user } = this.props;
-      const response = await request('GET', `/users/${user}/keys`);
-      this.setState({
-        'isLoading': false,
-        'keys': response.json,
-      })
-    } catch (e) {
-      this.setState({'isLoading': false});
-    }
+    this.setState({'isLoading': false});
   }
 
   renderInner() {
-    const {isLoading, keys} = this.state;
-    const { user } = this.props;
+    const {isLoading, groups} = this.state;
 
     if (isLoading) {
       return <div>Loading...</div>;
     }
 
-    if (keys.length === 0) {
-      return <div>There are no keys attached to this user or you do not have permission to view them</div>;
+    if (groups.length === 0) {
+      return <div>This user is in no groups.</div>;
     }
 
     return <Table selectable={false}>
       <TableHeader displaySelectAll={false}>
         <TableRow>
-          <TableHeaderColumn>Access Key Id</TableHeaderColumn>
+          <TableHeaderColumn>Name</TableHeaderColumn>
           <TableHeaderColumn>Actions</TableHeaderColumn>
         </TableRow>
       </TableHeader>
       <TableBody displayRowCheckbox={false}>
-        {keys.map((key) => (
-          <TableRow key={key.access_key_id}>
-            <TableRowColumn>{key.access_key_id}</TableRowColumn>
+        {groups.map((group) => (
+          <TableRow key={group.name}>
+            <TableRowColumn>{group.name}</TableRowColumn>
             <TableRowColumn>
+              <GenericButton
+                label="Edit"
+                to={`/users/${this.props.record.id}/groups/${group.id}/edit`}
+                icon={<ButtonIcon />}
+               />
                <GenericButton
                  label="Delete"
-                 to={`/users/${user}/keys/${key.id}/delete`}
+                 to={`/users/${this.props.record.id}/groups/${group.id}/delete`}
                  icon={<ButtonIcon />}
                 />
             </TableRowColumn>
@@ -80,19 +76,20 @@ class AccessKeyList extends Component {
         ))}
       </TableBody>
     </Table>
-  };
+
+  }
 
   render() {
     const { user } = this.props;
 
     return <Card style={{marginBottom: "20px"}}>
-      <CardTitle title="Access Keys" />
+      <CardTitle title="Groups" />
       <CardText>{this.renderInner()}</CardText>
       <Toolbar>
           <ToolbarGroup>
             <RaisedButton
-              label="Add Access Key"
-              to={`/users/${user}/add-access-key`}
+              label="Add to group"
+              to={`/users/${user}/add-to-group`}
               icon={<ContentAdd />}
               primary
              />
@@ -100,11 +97,10 @@ class AccessKeyList extends Component {
       </Toolbar>
     </Card>
   };
-
 };
 
-AccessKeyList.propTypes = {
+GroupList.propTypes = {
   dispatch: PropTypes.func.isRequired,
 };
 
-export default connect()(AccessKeyList);
+export default connect()(GroupList);

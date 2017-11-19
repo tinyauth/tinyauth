@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import FlatButton from 'material-ui/FlatButton';
+import RaisedButton from 'material-ui/RaisedButton';
 
 const GenericButton = ({label, to, icon, primary=false}) => (
-  <FlatButton
+  <RaisedButton
     label={label}
     icon={icon}
     containerElement={

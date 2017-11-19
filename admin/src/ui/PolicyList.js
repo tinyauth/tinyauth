@@ -9,9 +9,17 @@ import {
   TableRow,
   TableRowColumn,
 } from 'material-ui/Table';
+import {
+  Card,
+  CardTitle,
+  CardText,
+} from 'material-ui/Card'
+import { Toolbar, ToolbarGroup } from 'material-ui/Toolbar';
 
+import ContentAdd from 'material-ui/svg-icons/content/add';
 import ButtonIcon from 'material-ui/svg-icons/av/playlist-add';
-import GenericButton from './GenericButton'
+import GenericButton from './GenericButton';
+import RaisedButton from './RaisedButton';
 import { request } from '../restClient';
 
 
@@ -28,7 +36,8 @@ class PolicyList extends Component {
 
   async componentWillMount() {
     try {
-      const response = await request('GET', `/users/${this.props.record.id}/policies`);
+      const { user } = this.props;
+      const response = await request('GET', `/users/${user}/policies`);
       this.setState({
         'isLoading': false,
         'policies': response.json,
@@ -38,8 +47,9 @@ class PolicyList extends Component {
     }
   }
 
-  render() {
+  renderInner() {
     const {isLoading, policies} = this.state;
+    const { user } = this.props;
 
     if (isLoading) {
       return <div>Loading...</div>;
@@ -63,12 +73,12 @@ class PolicyList extends Component {
             <TableRowColumn>
               <GenericButton
                 label="Edit"
-                to={`/users/${this.props.record.id}/policies/${policy.id}/edit`}
+                to={`/users/${user}/policies/${policy.id}/edit`}
                 icon={<ButtonIcon />}
                />
                <GenericButton
                  label="Delete"
-                 to={`/users/${this.props.record.id}/policies/${policy.id}/delete`}
+                 to={`/users/${user}/policies/${policy.id}/delete`}
                  icon={<ButtonIcon />}
                 />
             </TableRowColumn>
@@ -76,6 +86,25 @@ class PolicyList extends Component {
         ))}
       </TableBody>
     </Table>
+  };
+
+  render() {
+    const { user } = this.props;
+
+    return <Card style={{marginBottom: "20px"}}>
+      <CardTitle title="Policies" />
+      <CardText>{this.renderInner()}</CardText>
+      <Toolbar>
+          <ToolbarGroup>
+            <RaisedButton
+              label="Add to group"
+              to={`/users/${user}/add-to-group`}
+              icon={<ContentAdd />}
+              primary
+             />
+          </ToolbarGroup>
+      </Toolbar>
+    </Card>
   };
 };
 
