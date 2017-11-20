@@ -17,38 +17,38 @@ import { crudGetOne as crudGetOneAction } from 'admin-on-rest/lib/actions/dataAc
 import { request } from '../restClient';
 
 
-class CreateUser extends Component {
+class CreateGroup extends Component {
   constructor(props) {
       super(props);
 
       this.state = {
         'id': '',
-        'username': '',
+        'name': '',
         'isLoading': true,
         'submitting': false,
         'pristine': true,
       };
 
-      this.handleCreateUser = this.handleCreateUser.bind(this);
+      this.handleCreateGroup = this.handleCreateGroup.bind(this);
       this.handleCancel = this.handleCancel.bind(this);
   }
 
-  async handleCreateUser(event) {
+  async handleCreateGroup(event) {
     const { dispatch } = this.props;
-    const { username } = this.state;
+    const { name } = this.state;
 
     this.setState({'submitting': true});
 
     try {
-      let { status, json } = await request('POST', "/users", {
-        username: username,
+      let { status, json } = await request('POST', "/groups", {
+        name: name,
       });
 
       if (status === 200) {
-        // Let the user know it worked
-        dispatch(showNotification("Saved user"));
-        dispatch(crudGetOneAction("users", json.id));
-        dispatch(push(`/users/${json.id}`));
+        // Let the group know it worked
+        dispatch(showNotification("Saved group"));
+        dispatch(crudGetOneAction("groups", json.id));
+        dispatch(push(`/groups/${json.id}`));
 
       } else {
         dispatch(showNotification("Unhandled server error. Please try again later."));
@@ -68,14 +68,14 @@ class CreateUser extends Component {
 
   render() {
     return <Card style={{marginBottom: "20px"}}>
-        <ViewTitle title="Edit User" />
+        <ViewTitle title="Create Group" />
         <CardText>
             <TextField
               floatingLabelText="Name"
               hintText="Name"
               errorText=""
-              value={this.state.username}
-              onChange={ev => this.setState({username: ev.target.value, pristine: false})}
+              value={this.state.name}
+              onChange={ev => this.setState({name: ev.target.value, pristine: false})}
               />
         </CardText>
         <Toolbar>
@@ -84,7 +84,7 @@ class CreateUser extends Component {
                     type="submit"
                     label="Save"
                     icon={<ActionCheck />}
-                    onClick={this.handleCreateUser}
+                    onClick={this.handleCreateGroup}
                     disabled={this.state.submitting || this.state.pristine}
                     primary
                 />
@@ -94,8 +94,8 @@ class CreateUser extends Component {
   };
 };
 
-CreateUser.propTypes = {
+CreateGroup.propTypes = {
     dispatch: PropTypes.func.isRequired,
 };
 
-export default connect()(CreateUser);
+export default connect()(CreateGroup);

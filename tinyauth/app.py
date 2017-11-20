@@ -32,6 +32,7 @@ def create_app(info):
     app.register_blueprint(resources.access_key_blueprint)
     app.register_blueprint(resources.user_policy_blueprint)
     app.register_blueprint(resources.group_blueprint)
+    app.register_blueprint(resources.group_policy_blueprint)
     app.register_blueprint(resources.service_blueprint)
 
     Migrate(app, db)
