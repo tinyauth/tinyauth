@@ -19,6 +19,7 @@ RUN pip install -r /requirements.txt
 COPY . /app/src
 RUN pip install -r /app/src/requirements.txt -e /app/src
 
+COPY --from=jsbuilder /src/build/asset-manifest.json /app/react/asset-manifest.json
 COPY --from=jsbuilder /src/build/static /app/react/static
 
 COPY ./docker/flask/gunicorn.sh /gunicorn.sh

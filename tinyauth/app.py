@@ -10,11 +10,16 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
+
 db = SQLAlchemy()
 
 
 def create_app(info):
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        static_folder='/app/react/static',
+    )
+
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///app.db')
     app.config['BUNDLE_ERRORS'] = True
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -34,6 +39,9 @@ def create_app(info):
     app.register_blueprint(resources.group_blueprint)
     app.register_blueprint(resources.group_policy_blueprint)
     app.register_blueprint(resources.service_blueprint)
+
+    from . import frontend
+    app.register_blueprint(frontend.frontend_blueprint)
 
     Migrate(app, db)
 
