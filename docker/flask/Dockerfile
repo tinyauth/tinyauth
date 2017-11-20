@@ -1,3 +1,12 @@
+FROM node AS jsbuilder
+
+COPY admin/package.json /src/package.json
+RUN cd /src && npm install
+
+COPY admin/public /src/public
+COPY admin/src /src/src
+RUN cd /src && npm run build
+
 FROM python:3.6
 
 ENV PYTHONUNBUFFERED 1
@@ -9,6 +18,8 @@ RUN pip install -r /requirements.txt
 
 COPY . /app/src
 RUN pip install -r /app/src/requirements.txt -e /app/src
+
+COPY --from=jsbuilder /src/build/static /app/react/static
 
 COPY ./docker/flask/gunicorn.sh /gunicorn.sh
 COPY ./docker/flask/entrypoint.sh /entrypoint.sh
