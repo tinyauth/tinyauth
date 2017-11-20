@@ -1,3 +1,6 @@
 #!/bin/sh
 python -m tinyauth db upgrade
-python -m tinyauth run -h 0.0.0.0 -p 8000
+
+export FLASK_APP=tinyauth.wsgi
+export FLASK_DEBUG=1
+python -m flask run -h 0.0.0.0 -p 8000

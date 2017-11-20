@@ -9,11 +9,16 @@ from tinyauth.simplerest import build_response_for_request
 user_fields = {
     'id': fields.Integer,
     'username': fields.String,
-    'groups': fields.List(fields.String(attribute='id')),
+    'groups': fields.List(fields.Nested({
+        'id': fields.String,
+        'name': fields.String,
+    })),
 }
 
 user_parser = reqparse.RequestParser()
 user_parser.add_argument('username', type=str, location='json', required=True)
+
+user_blueprint = Blueprint('user', __name__)
 
 
 class UserResource(Resource):
@@ -36,7 +41,7 @@ class UserResource(Resource):
         args = user_parser.parse_args()
 
         user = self._get_or_404(user_id)
-        user.name = args['username']
+        user.username = args['username']
         db.session.add(user)
 
         db.session.commit()
@@ -74,7 +79,6 @@ class UsersResource(Resource):
         return jsonify(marshal(user, user_fields))
 
 
-user_blueprint = Blueprint('user', __name__)
 user_api = Api(user_blueprint, prefix='/api/v1')
 user_api.add_resource(UsersResource, '/users')
 user_api.add_resource(UserResource, '/users/<user_id>')

@@ -59,8 +59,9 @@ def splice_query(model, query, splice_arg):
     return json.loads(splice_arg)
 
 
-def build_response_for_request(model, request, serializer):
-    query = base_query(model)
+def build_response_for_request(model, request, serializer, query=None):
+    if not query:
+        query = base_query(model)
 
     if 'filter' in request.args:
         query = filter_query(model, query, request.args['filter'])

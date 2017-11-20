@@ -3,7 +3,7 @@ from flask_restful import Api, Resource, abort, fields, marshal, reqparse
 
 from tinyauth.app import db
 from tinyauth.authorize import internal_authorize
-from tinyauth.models import Group
+from tinyauth.models import Group, User
 from tinyauth.simplerest import build_response_for_request
 
 group_fields = {
@@ -13,6 +13,8 @@ group_fields = {
 
 group_parser = reqparse.RequestParser()
 group_parser.add_argument('name', type=str, location='json', required=True)
+
+group_blueprint = Blueprint('group', __name__)
 
 
 class GroupResource(Resource):
@@ -73,7 +75,50 @@ class GroupsResource(Resource):
         return jsonify(marshal(group, group_fields))
 
 
-group_blueprint = Blueprint('group', __name__)
+@group_blueprint.route('/api/v1/groups/<group_id>/add-user', methods=['POST'])
+def add_user_to_group(group_id):
+    internal_authorize('AddUserToGroup', f'arn:tinyauth:')
+
+    group = Group.query.filter(Group.id == group_id).first()
+    if not group:
+        abort(404, message=f'group {group_id} does not exist')
+
+    user_parser = reqparse.RequestParser()
+    user_parser.add_argument('user', type=int, location='json', required=True)
+    args = user_parser.parse_args()
+
+    user = User.query.filter(User.id == args['user']).first()
+    if not user:
+        abort(404, message=f'user {args["user"]} does not exist')
+
+    group.users.append(user)
+    db.session.add(group)
+
+    db.session.commit()
+
+    return jsonify({})
+
+
+@group_blueprint.route('/api/v1/groups/<group_id>/users/<user_id>', methods=['DELETE'])
+def remove_user_from_group(group_id, user_id):
+    internal_authorize('RemoveUserFromGroup', f'arn:tinyauth:')
+
+    group = Group.query.filter(Group.id == group_id).first()
+    if not group:
+        abort(404, message=f'group {group_id} does not exist')
+
+    user = User.query.filter(User.id == user_id).first()
+    if not user:
+        abort(404, message=f'user {user_id} does not exist')
+
+    if user in group.users:
+        group.users.remove(user)
+        db.session.add(group)
+        db.session.commit()
+
+    return make_response(jsonify({}), 201, [])
+
+
 group_api = Api(group_blueprint, prefix='/api/v1')
 group_api.add_resource(GroupsResource, '/groups')
 group_api.add_resource(GroupResource, '/groups/<group_id>')
