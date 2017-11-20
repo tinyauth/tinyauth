@@ -1,6 +1,7 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 import AddGroupToUser from './views/AddGroupToUser';
+import CreateUser from './views/CreateUser';
 import EditUser from './views/EditUser';
 import AddUserPolicy from './views/AddUserPolicy';
 import EditUserPolicy from './views/EditUserPolicy';
@@ -17,5 +18,6 @@ export default [
     <Route path="/users/:user/keys/add" component={AddAccessKey} />,
     <Route path="/users/:user/keys/:key/delete" component={DeleteAccessKey} />,
     <Route path="/users/:user/groups/:group/delete" component={DeleteGroupMembership} />,
+    <Route path="/users/create" component={CreateUser} />,
     <Route path="/users/:user" component={EditUser} />,
 ];
