@@ -44,7 +44,13 @@ class AddGroupToUser extends Component {
     }
 
     async componentWillMount() {
+      const { dispatch } = this.props;
+
       let { status, json } = await request('GET', `/groups`);
+      if (status !== 200) {
+        dispatch(showNotification(`Unhandled error. Server status ${status}`));
+        return;
+      }
       this.setState({
         'source': json,
       })

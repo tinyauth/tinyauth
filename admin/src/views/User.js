@@ -1,6 +1,17 @@
 import React from 'react';
-import { List, Responsive, SimpleList, Create, EditButton, DeleteButton, SimpleForm, Datagrid, TextField, TextInput,  ReferenceArrayField, ReferenceArrayInput, SelectArrayInput, SingleFieldList, ChipField } from 'admin-on-rest/lib/mui';
+import { List, Responsive, SimpleList, Create, EditButton, DeleteButton, SimpleForm, Datagrid, TextField, TextInput, ReferenceArrayInput, SelectArrayInput, FunctionField } from 'admin-on-rest/lib/mui';
 
+import { Chip } from 'material-ui';
+
+const styles = {
+  chip: {
+    margin: 4,
+  },
+  wrapper: {
+    display: 'flex',
+    flexWrap: 'wrap',
+  },
+};
 
 export const UserList = (props) => (
   <List {...props}>
@@ -12,11 +23,11 @@ export const UserList = (props) => (
       }
       medium={<Datagrid>
           <TextField label="Username" source="username" />
-          <ReferenceArrayField label="Groups" reference="groups" source="groups">
-              <SingleFieldList>
-                  <ChipField source="name" />
-              </SingleFieldList>
-          </ReferenceArrayField>
+          <FunctionField
+            label="Groups"
+            source="groups"
+            render={ record => <div style={styles.wrapper}>{record.groups.map(group => <Chip style={styles.wrapper} key={group.id}>{group.name}</Chip>)}</div> }
+          />
           <EditButton />
           <DeleteButton />
         </Datagrid>
