@@ -1,9 +1,16 @@
 import json
 
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, send_from_directory
+
+frontend_blueprint = Blueprint('frontend', __name__, static_folder=None)
 
 
-frontend_blueprint = Blueprint('frontend', __name__)
+@frontend_blueprint.route('/static/<path:path>')
+def static(path):
+    return send_from_directory(
+        '/app/react/static',
+        path,
+    )
 
 
 @frontend_blueprint.route('/')

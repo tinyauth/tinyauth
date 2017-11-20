@@ -10,14 +10,13 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
-
 db = SQLAlchemy()
 
 
 def create_app(info):
     app = Flask(
         __name__,
-        static_folder='/app/react/static',
+        static_folder=None,
     )
 
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///app.db')
