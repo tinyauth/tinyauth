@@ -9,7 +9,10 @@ from tinyauth.simplerest import build_response_for_request
 user_fields = {
     'id': fields.Integer,
     'username': fields.String,
-    'groups': fields.List(fields.String(attribute='id')),
+    'groups': fields.List(fields.Nested({
+        'id': fields.String,
+        'name': fields.String,
+    })),
 }
 
 user_parser = reqparse.RequestParser()

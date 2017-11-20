@@ -35,11 +35,24 @@ class GroupList extends Component {
   }
 
   async componentWillMount() {
-    this.setState({'isLoading': false});
+    try {
+      const { user } = this.props;
+
+      const response = await request('GET', `/users/${user}`);
+      const { groups } = response.json;
+
+      this.setState({
+        'isLoading': false,
+        'groups': groups,
+      })
+    } catch (e) {
+      this.setState({'isLoading': false});
+    }
   }
 
   renderInner() {
-    const {isLoading, groups} = this.state;
+    const { isLoading, groups } = this.state;
+    const { user } = this.props;
 
     if (isLoading) {
       return <div>Loading...</div>;
@@ -63,12 +76,12 @@ class GroupList extends Component {
             <TableRowColumn>
               <GenericButton
                 label="Edit"
-                to={`/users/${this.props.record.id}/groups/${group.id}/edit`}
+                to={`/users/${user}/groups/${group.id}/edit`}
                 icon={<ButtonIcon />}
                />
                <GenericButton
                  label="Delete"
-                 to={`/users/${this.props.record.id}/groups/${group.id}/delete`}
+                 to={`/users/${user}/groups/${group.id}/delete`}
                  icon={<ButtonIcon />}
                 />
             </TableRowColumn>

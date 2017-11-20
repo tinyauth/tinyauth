@@ -3,7 +3,7 @@ from flask_restful import Api, Resource, abort, fields, marshal, reqparse
 
 from tinyauth.app import db
 from tinyauth.authorize import internal_authorize
-from tinyauth.models import Group
+from tinyauth.models import Group, User, group_users
 from tinyauth.simplerest import build_response_for_request
 
 group_fields = {
@@ -78,6 +78,24 @@ class GroupsResource(Resource):
 @group_blueprint.route('/api/v1/groups/<group_id>/add-user', methods=['POST'])
 def add_user_to_group(group_id):
     internal_authorize('AddUserToGroup', f'arn:tinyauth:')
+
+    group = Group.query.filter(Group.id == group_id).first()
+    if not group:
+        abort(404, message=f'group {group_id} does not exist')
+
+    user_parser = reqparse.RequestParser()
+    user_parser.add_argument('user', type=int, location='json', required=True)
+    args = user_parser.parse_args()
+
+    user = User.query.filter(User.id == args['user']).first()
+    if not user:
+        abort(404, message=f'user {user_id} does not exist')
+
+    group.users.append(user)
+    db.session.add(group)
+
+    db.session.commit()
+
     return jsonify({})
 
 
