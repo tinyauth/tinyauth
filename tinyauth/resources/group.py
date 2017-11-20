@@ -3,7 +3,7 @@ from flask_restful import Api, Resource, abort, fields, marshal, reqparse
 
 from tinyauth.app import db
 from tinyauth.authorize import internal_authorize
-from tinyauth.models import Group, User, group_users
+from tinyauth.models import Group, User
 from tinyauth.simplerest import build_response_for_request
 
 group_fields = {
@@ -89,7 +89,7 @@ def add_user_to_group(group_id):
 
     user = User.query.filter(User.id == args['user']).first()
     if not user:
-        abort(404, message=f'user {user_id} does not exist')
+        abort(404, message=f'user {args["user"]} does not exist')
 
     group.users.append(user)
     db.session.add(group)
