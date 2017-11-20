@@ -99,6 +99,26 @@ def add_user_to_group(group_id):
     return jsonify({})
 
 
+@group_blueprint.route('/api/v1/groups/<group_id>/users/<user_id>', methods=['DELETE'])
+def remove_user_from_group(group_id, user_id):
+    internal_authorize('RemoveUserFromGroup', f'arn:tinyauth:')
+
+    group = Group.query.filter(Group.id == group_id).first()
+    if not group:
+        abort(404, message=f'group {group_id} does not exist')
+
+    user = User.query.filter(User.id == user_id).first()
+    if not user:
+        abort(404, message=f'user {user_id} does not exist')
+
+    if user in group.users:
+        group.users.remove(user)
+        db.session.add(group)
+        db.session.commit()
+
+    return make_response(jsonify({}), 201, [])
+
+
 group_api = Api(group_blueprint, prefix='/api/v1')
 group_api.add_resource(GroupsResource, '/groups')
 group_api.add_resource(GroupResource, '/groups/<group_id>')

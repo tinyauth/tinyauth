@@ -74,11 +74,6 @@ class GroupList extends Component {
           <TableRow key={group.name}>
             <TableRowColumn>{group.name}</TableRowColumn>
             <TableRowColumn>
-              <GenericButton
-                label="Edit"
-                to={`/users/${user}/groups/${group.id}/edit`}
-                icon={<ButtonIcon />}
-               />
                <GenericButton
                  label="Delete"
                  to={`/users/${user}/groups/${group.id}/delete`}
