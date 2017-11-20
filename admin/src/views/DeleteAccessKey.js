@@ -66,7 +66,7 @@ class DeleteAccessKey extends Component {
 
     render() {
       return <Card>
-          <ViewTitle title="Remove access mey from user" />
+          <ViewTitle title="Remove access key from user" />
           <CardText>Are you sure you want to remove this access key?</CardText>
           <Toolbar>
               <ToolbarGroup>

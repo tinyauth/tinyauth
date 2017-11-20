@@ -7,7 +7,8 @@ import AlertError from 'material-ui/svg-icons/alert/error-outline';
 import RaisedButton from 'material-ui/RaisedButton';
 import { Toolbar, ToolbarGroup } from 'material-ui/Toolbar';
 
-import TextField from 'material-ui/TextField';
+import SelectField from 'material-ui/SelectField';
+import MenuItem from 'material-ui/MenuItem';
 
 import { ViewTitle } from 'admin-on-rest';
 import { crudGetOne as crudGetOneAction } from 'admin-on-rest/lib/actions/dataActions';
@@ -24,7 +25,8 @@ class AddGroupToUser extends Component {
         super(props);
 
         this.state = {
-          'group': '',
+          'selected': '',
+          'source': [],
           'submitting': false,
           'pristine': true,
         };
@@ -41,10 +43,17 @@ class AddGroupToUser extends Component {
             .join('/');
     }
 
+    async componentWillMount() {
+      let { status, json } = await request('GET', `/groups`);
+      this.setState({
+        'source': json,
+      })
+    }
+
     async handleAddUserToGroup(event) {
       const { dispatch } = this.props;
-      const group = this.state.group;
-      const user = this.props.match.params.user;
+      const group = this.state.selected;
+      const { user } = this.props.match.params;
 
       this.setState({'submitting': true});
 
@@ -75,15 +84,22 @@ class AddGroupToUser extends Component {
     }
 
     render() {
+      const { source } = this.state;
+
       return <Card>
           <ViewTitle title="Add User To Group" />
           <CardText>
-              <TextField
+              <SelectField
                 floatingLabelText="Group"
                 hintText="Group"
                 errorText=""
-                onChange={ev => this.setState({group: ev.target.value, pristine: false})}
-                />
+                value={this.state.selected}
+                onChange={(ev, idx, value) => this.setState({selected: value, pristine: false})}
+                >
+                {source.map((group) => (
+                  <MenuItem key={group.id} value={group.id} primaryText={group.name} />
+                ))}
+                </SelectField>
           </CardText>
           <Toolbar>
               <ToolbarGroup>
