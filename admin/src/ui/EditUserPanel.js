@@ -24,6 +24,7 @@ class EditUserPanel extends Component {
         this.state = {
           'id': '',
           'username': '',
+          'password': '',
           'isLoading': true,
           'submitting': false,
           'pristine': true,
@@ -42,6 +43,7 @@ class EditUserPanel extends Component {
           'isLoading': false,
           'id': response.json.id,
           'username': response.json.username,
+          'password': 'password',
         })
       } catch (e) {
         this.setState({'isLoading': false});
@@ -50,13 +52,14 @@ class EditUserPanel extends Component {
 
     async handleAddUserToGroup(event) {
       const { dispatch, user } = this.props;
-      const { username } = this.state;
+      const { username, password } = this.state;
 
       this.setState({'submitting': true});
 
       try {
         let { status } = await request('PUT', `/users/${user}`, {
           username: username,
+          password: password,
         });
 
         if (status === 200) {
@@ -89,6 +92,17 @@ class EditUserPanel extends Component {
                 errorText=""
                 value={this.state.username}
                 onChange={ev => this.setState({username: ev.target.value, pristine: false})}
+                />
+
+              <br />
+
+              <TextField
+                floatingLabelText="Password"
+                hintText="Password"
+                errorText=""
+                type="password"
+                value={this.state.password}
+                onChange={ev => this.setState({password: ev.target.value, pristine: false})}
                 />
           </CardText>
           <Toolbar>

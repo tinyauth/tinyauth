@@ -17,6 +17,7 @@ user_fields = {
 
 user_parser = reqparse.RequestParser()
 user_parser.add_argument('username', type=str, location='json', required=True)
+user_parser.add_argument('password', type=str, location='json')
 
 user_blueprint = Blueprint('user', __name__)
 
@@ -41,7 +42,10 @@ class UserResource(Resource):
         args = user_parser.parse_args()
 
         user = self._get_or_404(user_id)
-        user.username = args['username']
+        if 'username' in args:
+            user.username = args['username']
+        if 'password' in args:
+            user.set_password(args['password'])
         db.session.add(user)
 
         db.session.commit()
@@ -72,6 +76,8 @@ class UsersResource(Resource):
         user = User(
             username=args['username'],
         )
+        if 'password' in args:
+            user.set_password(args['password'])
 
         db.session.add(user)
         db.session.commit()

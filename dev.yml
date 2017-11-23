@@ -19,7 +19,6 @@ services:
     build:
       context: .
       dockerfile: ./docker/flask/Dockerfile-dev
-    command: /start-dev.sh
     depends_on:
       - postgres
     environment:

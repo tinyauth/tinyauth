@@ -1,4 +1,7 @@
+import binascii
+import hashlib
 import json
+import secrets
 
 import sqlalchemy.types as types
 
@@ -70,6 +73,8 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(128))
+    password = db.Column(db.String(64))
+    salt = db.Column(db.LargeBinary(length=16))
 
     groups = db.relationship(
         'Group',
@@ -80,6 +85,17 @@ class User(db.Model):
 
     policies = db.relationship('UserPolicy', backref='user', lazy=True)
     access_keys = db.relationship('AccessKey', backref='user', lazy=True)
+
+    def _hash_password(self, password):
+        dk = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), self.salt, 100000)
+        return binascii.hexlify(dk).decode('utf-8')
+
+    def set_password(self, password):
+        self.salt = secrets.token_bytes(16)
+        self.password = self._hash_password(password)
+
+    def is_valid_password(self, password):
+        return secrets.compare_digest(self.password, self._hash_password(password))
 
     def __repr__(self):
         return f'<User {self.username!r}>'

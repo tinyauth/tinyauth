@@ -24,6 +24,7 @@ class CreateUser extends Component {
       this.state = {
         'id': '',
         'username': '',
+        'password': '',
         'isLoading': true,
         'submitting': false,
         'pristine': true,
@@ -35,13 +36,14 @@ class CreateUser extends Component {
 
   async handleCreateUser(event) {
     const { dispatch } = this.props;
-    const { username } = this.state;
+    const { username, password } = this.state;
 
     this.setState({'submitting': true});
 
     try {
       let { status, json } = await request('POST', "/users", {
         username: username,
+        password: password,
       });
 
       if (status === 200) {
@@ -68,7 +70,7 @@ class CreateUser extends Component {
 
   render() {
     return <Card style={{marginBottom: "20px"}}>
-        <ViewTitle title="Edit User" />
+        <ViewTitle title="Add New User" />
         <CardText>
             <TextField
               floatingLabelText="Name"
@@ -76,6 +78,17 @@ class CreateUser extends Component {
               errorText=""
               value={this.state.username}
               onChange={ev => this.setState({username: ev.target.value, pristine: false})}
+              />
+
+            <br />
+
+            <TextField
+              floatingLabelText="Password"
+              hintText="Password"
+              errorText=""
+              type="password"
+              value={this.state.password}
+              onChange={ev => this.setState({password: ev.target.value, pristine: false})}
               />
         </CardText>
         <Toolbar>

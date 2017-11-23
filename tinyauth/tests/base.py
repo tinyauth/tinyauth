@@ -22,7 +22,8 @@ class TestCase(unittest.TestCase):
         self._ctx = self.app.test_request_context()
         self._ctx.push()
 
-        user = User(username='charles')
+        self.user = user = User(username='charles')
+        user.set_password('mrfluffy')
         db.session.add(user)
 
         policy = UserPolicy(name='tinyauth', user=user, policy={

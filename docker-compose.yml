@@ -23,8 +23,6 @@ services:
       dockerfile: ./docker/flask/Dockerfile
     depends_on:
       - postgres
-    command: /gunicorn.sh
-    user: flask
     environment:
     - POSTGRES_USER=tinyauth
     - POSTGRES_PASSWORD=tinyauth

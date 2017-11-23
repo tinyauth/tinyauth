@@ -27,11 +27,11 @@ COPY ./docker/flask/entrypoint.sh /entrypoint.sh
 
 RUN sed -i 's/\r//' /entrypoint.sh \
     && sed -i 's/\r//' /gunicorn.sh \
-    && chmod +x /entrypoint.sh \
     && chown flask /entrypoint.sh \
-    && chmod +x /gunicorn.sh \
     && chown flask /gunicorn.sh
 
 WORKDIR /app/src
 
+USER flask
 ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/gunicorn.sh"]
