@@ -35,3 +35,4 @@ testfixtures==5.2.0
 Werkzeug==0.12.2
 pytest-cov
 codecov
+PyJWT

@@ -24,6 +24,7 @@ setup(
         "Flask-RESTful>=0.3.5",
         "Flask-SQLAlchemy>=2.2",
         "psycopg2>=2.6.1",
+        "PyJWT>=1.5.3",
     ],
     extras_require = {
         'test': [
