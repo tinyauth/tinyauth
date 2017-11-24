@@ -1,30 +1,31 @@
 // in src/authClient.js
 import { AUTH_CHECK, AUTH_ERROR, AUTH_LOGIN, AUTH_LOGOUT } from 'admin-on-rest';
+// import cookie from 'react-cookie';
+
 
 export default (type, params) => {
-    if (type === AUTH_LOGIN) {
-        const { username, password } = params;
-        localStorage.setItem('token', username + ':' + password);
-        return Promise.resolve();
-    }
+    // console.log(cookie.load('tinycsrf'));
+    console.log(type);
+    console.log(params);
 
-    if (type === AUTH_LOGOUT) {
-        localStorage.removeItem('token');
-        return Promise.resolve();
-    }
+    //if (type === AUTH_LOGOUT) {
+    //    localStorage.removeItem('tinycsrf');
+    //    return Promise.resolve();
+    //}
 
-    if (type === AUTH_ERROR) {
-        const { status } = params;
-        if (status === 401 || status === 403) {
-            localStorage.removeItem('token');
-            return Promise.reject();
-        }
-        return Promise.resolve();
-    }
+    //if (type === AUTH_ERROR) {
+    //    const { status } = params;
+    //    if (status === 401 || status === 403) {
+    //        localStorage.removeItem('tinycsrf');
+    //        return Promise.reject();
+    //    }
+    //    return Promise.resolve();
+    //}
 
-    if (type === AUTH_CHECK) {
-        return localStorage.getItem('token') ? Promise.resolve() : Promise.reject();
-    }
+    //if (type === AUTH_CHECK) {
+    //  console.log(cookie.load('tinycsrf'));
+    //    return Promise.resolve();
+    //}
 
     return Promise.resolve();
 }

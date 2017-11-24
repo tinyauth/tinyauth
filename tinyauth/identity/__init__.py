@@ -2,8 +2,8 @@ from . import basicauth, jwt, exceptions
 
 
 token_identifiers = [
-    basicauth.parse,
     jwt.parse,
+    basicauth.parse,
 ]
 
 
@@ -12,7 +12,6 @@ def identify(headers):
         try:
             return fn(headers)
         except exceptions.Unsigned:
-            raise
             continue
 
     raise exceptions.Unsigned()
