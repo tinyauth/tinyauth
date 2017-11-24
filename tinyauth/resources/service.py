@@ -2,7 +2,11 @@ from flask import Blueprint, jsonify
 from flask_restful import reqparse
 from werkzeug.datastructures import Headers
 
-from ..authorize import external_authorize, external_authorize_login, internal_authorize
+from ..authorize import (
+    external_authorize,
+    external_authorize_login,
+    internal_authorize,
+)
 
 service_blueprint = Blueprint('service', __name__)
 

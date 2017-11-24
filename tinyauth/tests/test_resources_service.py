@@ -1,9 +1,8 @@
 import base64
 import json
-import unittest
 
-from tinyauth.app import create_app, db
-from tinyauth.models import AccessKey, User, UserPolicy
+from tinyauth.app import db
+from tinyauth.models import UserPolicy
 
 from . import base
 

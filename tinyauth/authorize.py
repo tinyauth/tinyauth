@@ -3,13 +3,14 @@ import datetime
 from flask import abort, request
 from werkzeug.http import parse_authorization_header
 
-from .models import AccessKey, User
+from .identity import identify
+from .identity.exceptions import IdentityError
+from .models import User
 from .policy import allow
 
 
 def _authorize_user(user, action, resource, headers, context):
     ctx = dict(context)
-    ctx['Mfa'] = False
 
     policy = {
         'Statement': []
@@ -35,33 +36,15 @@ def _authorize_user(user, action, resource, headers, context):
 
 
 def _authorize_access_key(action, resource, headers, context):
-    if 'Authorization' not in headers:
-        return {
-            'Authorized': False,
-            'ErrorCode': 'NoSuchKey',
-        }
+    try:
+        user, mfa = identify(headers)
+    except IdentityError as e:
+        return e.asdict()
 
-    auth = parse_authorization_header(headers.get('Authorization'))
-    if not auth:
-        return {
-            'Authorized': False,
-            'ErrorCode': 'NoSuchKey',
-        }
+    context = dict(context)
+    context['Mfa'] = mfa
 
-    access_key = AccessKey.query.filter(AccessKey.access_key_id == auth.username).first()
-    if not access_key:
-        return {
-            'Authorized': False,
-            'ErrorCode': 'NoSuchKey',
-        }
-
-    if access_key.secret_access_key != auth.password:
-        return {
-            'Authorized': False,
-            'ErrorCode': 'InvalidSecretKey',
-        }
-
-    return _authorize_user(access_key.user, action, resource, headers, context)
+    return _authorize_user(user, action, resource, headers, context)
 
 
 def _authorize_login(action, resource, headers, context):

@@ -1,17 +1,20 @@
 import datetime
 import json
 import uuid
+from urllib.parse import urljoin, urlparse
 
 import jwt
-
-from flask import request, Response, abort, redirect
-from flask import Blueprint, render_template, send_from_directory
+from flask import (
+    Blueprint,
+    Response,
+    abort,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+)
 
 from tinyauth.models import User
-
-from urllib.parse import urlparse, urljoin
-from flask import request
-
 
 frontend_blueprint = Blueprint('frontend', __name__, static_folder=None)
 
@@ -19,8 +22,7 @@ frontend_blueprint = Blueprint('frontend', __name__, static_folder=None)
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
-    return test_url.scheme in ('http', 'https') and \
-           ref_url.netloc == test_url.netloc
+    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
 
 
 def get_session():
@@ -60,7 +62,6 @@ def login():
         'iat': datetime.datetime.utcnow(),
         'csrf-token': csrf_token,
     }, 'secret', algorithm='HS256')
-
 
     response = redirect('/')
     response.set_cookie('tinysess', jwt_token, httponly=True, secure=True, expires=expires)

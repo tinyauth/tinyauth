@@ -78,7 +78,7 @@ class TestCase(unittest.TestCase):
         assert json.loads(response.get_data(as_text=True)) == {
             'message': {
                 'Authorized': False,
-                'ErrorCode': 'NoSuchKey',
+                'ErrorCode': 'UnsignedRequest',
             }
         }
 

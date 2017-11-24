@@ -76,7 +76,7 @@ class UsersResource(Resource):
         user = User(
             username=args['username'],
         )
-        if 'password' in args:
+        if args['password']:
             user.set_password(args['password'])
 
         db.session.add(user)
