@@ -3,6 +3,7 @@ version: '2'
 volumes:
   postgres_data_dev: {}
   postgres_backup_dev: {}
+  nginx_tls: {}
 
 services:
   postgres:
@@ -28,3 +29,20 @@ services:
       - .:/app/src
     ports:
       - "8000:8000"
+
+  ui:
+    build:
+      context: .
+      dockerfile: ./docker/ui/Dockerfile-dev
+    volumes:
+      - ./admin/src:/src/src
+      - ./admin/public:/src/public
+
+  nginx:
+    build: ./docker/nginx
+    volumes:
+      - nginx_tls:/etc/nginx/external/
+    depends_on:
+      - flask
+    ports:
+      - "0.0.0.0:443:443"
