@@ -46,13 +46,13 @@ class App extends Component {
       "error": "",
       "submitting": false,
     }
-    
+
     this.login = this.login.bind(this);
   }
 
   async login(ev) {
     ev.preventDefault();
-    
+
     this.setState({"submitting": true});
 
     const headers = new Headers({
@@ -69,12 +69,19 @@ class App extends Component {
         method: "POST",
         headers: headers,
         body: JSON.stringify(request),
+        credentials: 'include',
       });
-      
-      if (status !== 200) {
+
+      if (status === 200) {
+        this.setState({
+          error: "SUCCESS",
+        })
+        window.location = '/';
+      }
+      else {
         this.setState({
           error: "It looks like we are unable to verify your username and password",
-        })
+        });
         return;
       }
     }

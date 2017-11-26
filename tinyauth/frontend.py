@@ -9,15 +9,21 @@ from flask import (
     Response,
     abort,
     current_app,
+    jsonify,
     redirect,
     render_template,
     request,
     send_from_directory,
 )
+from flask_restful import reqparse
 
 from tinyauth.models import User
 
 frontend_blueprint = Blueprint('frontend', __name__, static_folder=None)
+
+user_parser = reqparse.RequestParser()
+user_parser.add_argument('username', type=str, location='json', required=True)
+user_parser.add_argument('password', type=str, location='json', required=True)
 
 
 def is_safe_url(target):
@@ -28,6 +34,7 @@ def is_safe_url(target):
 
 def get_session():
     session = request.cookies.get('tinysess')
+
     if not session:
         return None
 
@@ -41,17 +48,38 @@ def get_session():
 
 @frontend_blueprint.route('/login')
 def login():
-    auth = request.authorization
+    if get_session():
+        return redirect('/')
 
-    if not auth:
-        return Response('', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+    if current_app.config.get('DEBUG', True):
+        assets = {
+           'main.js': 'login/static/js/bundle.js',
+           'main.css': 'login/static/css/main.css',
+        }
+    else:
+        with open('/app/login-ui/asset-manifest.json', 'r') as fp:
+            assets = json.loads(fp.read())
 
-    user = User.query.filter(User.username == auth.username).first()
+    return render_template(
+       'frontend/login.html',
+       css_hash=assets['main.css'],
+       js_hash=assets['main.js'],
+      )
+
+
+@frontend_blueprint.route('/login', methods=["POST"])
+def login_post():
+    if get_session():
+        return redirect('/')
+
+    req = user_parser.parse_args()
+
+    user = User.query.filter(User.username == req['username']).first()
     if not user or not user.password:
-        return Response('', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+        return Response('', 401)
 
-    if not user.is_valid_password(auth.password):
-        return Response('', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+    if not user.is_valid_password(req['password']):
+        return Response('', 401)
 
     expires = datetime.datetime.utcnow() + datetime.timedelta(hours=8)
     csrf_token = str(uuid.uuid4())
@@ -64,7 +92,7 @@ def login():
         'csrf-token': csrf_token,
     }, 'secret', algorithm='HS256')
 
-    response = redirect('/')
+    response = jsonify({})
     response.set_cookie('tinysess', jwt_token, httponly=True, secure=True, expires=expires)
     response.set_cookie('tinycsrf', csrf_token, httponly=False, secure=True, expires=expires)
 
@@ -102,4 +130,4 @@ def index():
        'frontend/index.html',
        css_hash=assets['main.css'],
        js_hash=assets['main.js'],
-      )
+    )

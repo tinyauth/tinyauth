@@ -38,11 +38,17 @@ services:
       - ./admin/src:/src/src
       - ./admin/public:/src/public
 
+  login-ui:
+    build:
+      context: .
+      dockerfile: ./docker/login-ui/Dockerfile-dev
+    volumes:
+      - ./login-ui/src:/src/src
+      - ./login-ui/public:/src/public
+
   nginx:
     build: ./docker/nginx
     volumes:
       - nginx_tls:/etc/nginx/external/
-    depends_on:
-      - flask
     ports:
       - "0.0.0.0:443:443"
