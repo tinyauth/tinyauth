@@ -8,6 +8,7 @@ from flask import (
     Blueprint,
     Response,
     abort,
+    current_app,
     redirect,
     render_template,
     request,
@@ -88,8 +89,14 @@ def index():
     if not session:
         return redirect('/login')
 
-    with open('/app/react/asset-manifest.json', 'r') as fp:
-        assets = json.loads(fp.read())
+    if current_app.config.get('DEBUG', True):
+        assets = {
+           'main.js': 'static/js/bundle.js',
+           'main.css': 'static/css/main.css',
+        }
+    else:
+        with open('/app/react/asset-manifest.json', 'r') as fp:
+            assets = json.loads(fp.read())
 
     return render_template(
        'frontend/index.html',

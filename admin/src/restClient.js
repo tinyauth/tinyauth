@@ -1,5 +1,7 @@
 import { simpleRestClient, fetchUtils } from 'admin-on-rest';
-// import cookie from "react-cookie";
+import Cookies from 'universal-cookie';
+
+const cookies = new Cookies();
 
 const httpClient = (url, options = {}) => {
     if (!options.headers) {
@@ -7,8 +9,7 @@ const httpClient = (url, options = {}) => {
     }
     options['credentials'] = 'same-origin';
 
-    // options.headers.set('X-CSRF-Token', cookie.load('tinycsrf'));
-    options.headers.set('X-CSRF-Token', '99a1494b-9f33-49af-9a5e-a2b6a93a1a72');
+    options.headers.set('X-CSRF-Token', cookies.get('tinycsrf'));
     return fetchUtils.fetchJson(url, options);
 }
 

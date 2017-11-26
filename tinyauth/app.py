@@ -9,6 +9,8 @@ from flask.cli import FlaskGroup
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.contrib.fixers import ProxyFix
+
 
 db = SQLAlchemy()
 
@@ -18,6 +20,8 @@ def create_app(info):
         __name__,
         static_folder=None,
     )
+
+    app.wsgi_app = ProxyFix(app.wsgi_app)
 
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///app.db')
     app.config['BUNDLE_ERRORS'] = True
