@@ -1,8 +1,8 @@
 version: '2'
 
 volumes:
-  postgres_data_dev: {}
-  postgres_backup_dev: {}
+  postgres_data: {}
+  postgres_backup: {}
   nginx_tls: {}
 
 services:
@@ -47,7 +47,9 @@ services:
       - ./login-ui/public:/src/public
 
   nginx:
-    build: ./docker/nginx
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile-dev
     volumes:
       - nginx_tls:/etc/nginx/external/
     ports:

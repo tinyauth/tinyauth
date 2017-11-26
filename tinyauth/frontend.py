@@ -46,6 +46,14 @@ def get_session():
     return token
 
 
+@frontend_blueprint.route('/login/static/<path:path>')
+def login_static(path):
+    return send_from_directory(
+        '/app/login-ui/static',
+        path,
+    )
+
+
 @frontend_blueprint.route('/login')
 def login():
     if get_session():
@@ -53,8 +61,7 @@ def login():
 
     if current_app.config.get('DEBUG', True):
         assets = {
-           'main.js': 'login/static/js/bundle.js',
-           'main.css': 'login/static/css/main.css',
+           'main.js': 'static/js/bundle.js',
         }
     else:
         with open('/app/login-ui/asset-manifest.json', 'r') as fp:
@@ -62,8 +69,7 @@ def login():
 
     return render_template(
        'frontend/login.html',
-       css_hash=assets['main.css'],
-       js_hash=assets['main.js'],
+       js_hash='login/' + assets['main.js'],
       )
 
 
@@ -106,7 +112,7 @@ def static(path):
         abort(404)
 
     return send_from_directory(
-        '/app/react/static',
+        '/app/admin-ui/static',
         path,
     )
 
@@ -123,7 +129,7 @@ def index():
            'main.css': 'static/css/main.css',
         }
     else:
-        with open('/app/react/asset-manifest.json', 'r') as fp:
+        with open('/app/admin-ui/asset-manifest.json', 'r') as fp:
             assets = json.loads(fp.read())
 
     return render_template(
