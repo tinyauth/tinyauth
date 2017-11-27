@@ -54,6 +54,19 @@ def login_static(path):
     )
 
 
+@frontend_blueprint.route('/logout')
+def logout():
+    response = redirect('/login')
+
+    if 'tinysess' in request.cookies:
+        response.set_cookie('tinysess', '', expires=0)
+
+    if 'tinycsrf' in request.cookies:
+        response.set_cookie('tinycsrf', '', expires=0)
+
+    return response
+
+
 @frontend_blueprint.route('/login')
 def login():
     if get_session():

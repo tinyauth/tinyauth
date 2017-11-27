@@ -1,31 +1,27 @@
 // in src/authClient.js
 import { AUTH_CHECK, AUTH_ERROR, AUTH_LOGIN, AUTH_LOGOUT } from 'admin-on-rest';
-// import cookie from 'react-cookie';
+import Cookies from 'universal-cookie';
 
+const cookies = new Cookies();
 
 export default (type, params) => {
-    // console.log(cookie.load('tinycsrf'));
-    console.log(type);
-    console.log(params);
+    if (type === AUTH_LOGOUT) {
+        window.location = '/logout';
+        return Promise.resolve();
+    }
 
-    //if (type === AUTH_LOGOUT) {
-    //    localStorage.removeItem('tinycsrf');
-    //    return Promise.resolve();
-    //}
+    if (type === AUTH_ERROR) {
+        const { status } = params;
+        if (status === 401 || status === 403) {
+            window.location = '/logout';
+            return Promise.reject();
+        }
+        return Promise.resolve();
+    }
 
-    //if (type === AUTH_ERROR) {
-    //    const { status } = params;
-    //    if (status === 401 || status === 403) {
-    //        localStorage.removeItem('tinycsrf');
-    //        return Promise.reject();
-    //    }
-    //    return Promise.resolve();
-    //}
+    if (type === AUTH_CHECK) {
+      cookies.get('tinycsrf') ? Promise.resolve() : Promise.reject();
+    }
 
-    //if (type === AUTH_CHECK) {
-    //  console.log(cookie.load('tinycsrf'));
-    //    return Promise.resolve();
-    //}
-
-    return Promise.resolve();
+    return Promise.resolve('Unknown method');
 }
