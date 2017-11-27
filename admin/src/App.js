@@ -14,8 +14,8 @@ import customRoutes from './customRoutes';
 
 const App = () => (
   <Admin title="tinyauth" customRoutes={customRoutes} authClient={authClient} restClient={restClient}>
-    <Resource name="users" list={UserList} icon={UserIcon} />
-    <Resource name="groups" list={GroupList}icon={GroupIcon} />
+    <Resource name="users" create={true} list={UserList} icon={UserIcon} />
+    <Resource name="groups" create={true} list={GroupList}icon={GroupIcon} />
   </Admin>
 );
 

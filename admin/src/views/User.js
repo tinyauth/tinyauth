@@ -1,5 +1,5 @@
 import React from 'react';
-import { List, Responsive, SimpleList, Create, EditButton, DeleteButton, SimpleForm, Datagrid, TextField, TextInput, ReferenceArrayInput, SelectArrayInput, FunctionField } from 'admin-on-rest/lib/mui';
+import { List, Responsive, SimpleList, EditButton, DeleteButton, Datagrid, TextField, FunctionField } from 'admin-on-rest/lib/mui';
 
 import { Chip } from 'material-ui';
 
@@ -34,16 +34,4 @@ export const UserList = (props) => (
       }
       />
   </List>
-);
-
-export const UserCreate = (props) => (
-  <Create {...props}>
-    <SimpleForm>
-      <TextInput source="username" validation={{ required: true }} />
-
-      <ReferenceArrayInput label="Groups" source="groups" reference="groups" allowEmpty>
-          <SelectArrayInput optionText="name"/>
-      </ReferenceArrayInput>
-    </SimpleForm>
-  </Create>
 );
