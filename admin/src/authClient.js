@@ -1,5 +1,5 @@
 // in src/authClient.js
-import { AUTH_CHECK, AUTH_ERROR, AUTH_LOGIN, AUTH_LOGOUT } from 'admin-on-rest';
+import { AUTH_CHECK, AUTH_ERROR, AUTH_LOGOUT } from 'admin-on-rest';
 import Cookies from 'universal-cookie';
 
 const cookies = new Cookies();
