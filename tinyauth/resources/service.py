@@ -1,3 +1,5 @@
+import collections
+
 from flask import Blueprint, jsonify
 from flask_restful import reqparse
 from werkzeug.datastructures import Headers
@@ -17,7 +19,7 @@ authorize_parser.add_argument('headers', type=list, location='json', required=Tr
 authorize_parser.add_argument('context', type=dict, location='json', required=True)
 
 batch_authorize_parser = reqparse.RequestParser()
-batch_authorize_parser.add_argument('steps', type=list, location='json', required=True)
+batch_authorize_parser.add_argument('permit', type=dict, location='json', required=True)
 batch_authorize_parser.add_argument('headers', type=list, location='json', required=True)
 batch_authorize_parser.add_argument('context', type=dict, location='json', required=True)
 
@@ -55,33 +57,36 @@ def service_authorize():
     return jsonify(result)
 
 
-@service_blueprint.route('/api/v1/batch-authorize-by-token', methods=['POST'])
-def batch_service_authorize():
+@service_blueprint.route('/api/v1/services/<service>/authorize-by-token', methods=['POST'])
+def batch_service_authorize(service):
     internal_authorize('BatchAuthorizeByToken', f'arn:tinyauth:')
 
     args = batch_authorize_parser.parse_args()
 
     result = {
-       'Steps': [],
-       'Authorized': True,
-       'Identity': 'guest',
+       'Permitted': collections.defaultdict(list),
+       'NotPermitted': collections.defaultdict(list),
+       'Authorized': False,
     }
 
     # FIXME: Refactor this to only need to verify identity once and reuse the extracted policies for multiple verifications
-    for step in args['steps']:
-        step_result = external_authorize(
-            action=step['action'],
-            resource=step['resource'],
-            headers=Headers(args['headers']),
-            context=args['context'],
-        )
+    for action, resources in args['permit'].items():
+        for resource in resources:
+            step_result = external_authorize(
+                action=':'.join((service, action)),
+                resource=resource,
+                headers=Headers(args['headers']),
+                context=args['context'],
+            )
 
-        result['Steps'].append(step_result['Authorized'])
+            grant_set = result['Permitted' if step_result['Authorized'] else 'NotPermitted']
+            grant_set[action].append(resource)
 
-        if not step_result['Authorized']:
-            result['Authorized'] = False
+            if not step_result['Authorized']:
+                result['ErrorCode'] = step_result['ErrorCode']
 
-    if result['Authorized']:
+    if len(result['NotPermitted']) == 0 and len(result['Permitted']) > 0:
+        result['Authorized'] = True
         result['Identity'] = step_result['Identity']
 
     return jsonify(result)
