@@ -24,7 +24,6 @@ batch_authorize_parser.add_argument('headers', type=list, location='json', requi
 batch_authorize_parser.add_argument('context', type=dict, location='json', required=True)
 
 
-
 @service_blueprint.route('/api/v1/authorize-login', methods=['POST'])
 def service_authorize_login():
     internal_authorize('Authorize', f'arn:tinyauth:')
