@@ -1,6 +1,9 @@
 import collections
+import datetime
+import uuid
 
-from flask import Blueprint, jsonify
+import jwt
+from flask import Blueprint, Response, jsonify
 from flask_restful import reqparse
 from werkzeug.datastructures import Headers
 
@@ -9,6 +12,7 @@ from ..authorize import (
     external_authorize_login,
     internal_authorize,
 )
+from ..models import User
 
 service_blueprint = Blueprint('service', __name__)
 
@@ -54,6 +58,39 @@ def service_authorize():
     )
 
     return jsonify(result)
+
+
+@service_blueprint.route('/api/v1/services/<service>/get-token-for-login', methods=['POST'])
+def get_token_for_login(service):
+    internal_authorize('GetTokenForLogin', f'arn:tinyauth:')
+
+    user_parser = reqparse.RequestParser()
+    user_parser.add_argument('username', type=str, location='json', required=True)
+    user_parser.add_argument('password', type=str, location='json', required=True)
+    req = user_parser.parse_args()
+
+    user = User.query.filter(User.username == req['username']).first()
+    if not user or not user.password:
+        return Response('', 401)
+
+    if not user.is_valid_password(req['password']):
+        return Response('', 401)
+
+    expires = datetime.datetime.utcnow() + datetime.timedelta(hours=8)
+    csrf_token = str(uuid.uuid4())
+
+    jwt_token = jwt.encode({
+        'user': user.id,
+        'mfa': False,
+        'exp': expires,
+        'iat': datetime.datetime.utcnow(),
+        'csrf-token': csrf_token,
+    }, 'secret', algorithm='HS256')
+
+    return jsonify({
+        'token': jwt_token.decode('utf-8'),
+        'csrf': csrf_token,
+    })
 
 
 @service_blueprint.route('/api/v1/services/<service>/authorize-by-token', methods=['POST'])
