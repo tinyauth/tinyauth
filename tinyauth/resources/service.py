@@ -1,5 +1,6 @@
 import collections
 import datetime
+import json
 import uuid
 
 import jwt
@@ -67,30 +68,38 @@ def get_token_for_login(service):
     user_parser = reqparse.RequestParser()
     user_parser.add_argument('username', type=str, location='json', required=True)
     user_parser.add_argument('password', type=str, location='json', required=True)
+    user_parser.add_argument('csrf-strategy', type=str, location='json', required=True)
     req = user_parser.parse_args()
+
+    if req['csrf-strategy'] not in ('header-token', 'cookie', 'none'):
+        return Response('', 401)
 
     user = User.query.filter(User.username == req['username']).first()
     if not user or not user.password:
-        return Response('', 401)
+        return Response(json.dumps({'message': 'Invalid credentials'}), 401)
 
     if not user.is_valid_password(req['password']):
-        return Response('', 401)
+        return Response(json.dumps({'message': 'Invalid credentials'}), 401)
 
     expires = datetime.datetime.utcnow() + datetime.timedelta(hours=8)
-    csrf_token = str(uuid.uuid4())
 
-    jwt_token = jwt.encode({
+    token_contents = {
         'user': user.id,
         'mfa': False,
         'exp': expires,
         'iat': datetime.datetime.utcnow(),
-        'csrf-token': csrf_token,
-    }, 'secret', algorithm='HS256')
+    }
 
-    return jsonify({
-        'token': jwt_token.decode('utf-8'),
-        'csrf': csrf_token,
-    })
+    if req['csrf-strategy'] == 'header-token':
+        token_contents['csrf-token'] = str(uuid.uuid4())
+
+    jwt_token = jwt.encode(token_contents, 'secret', algorithm='HS256')
+
+    response = {'token': jwt_token.decode('utf-8')}
+    if 'csrf-token' in token_contents:
+        response['csrf'] = token_contents['csrf-token']
+
+    return jsonify(response)
 
 
 @service_blueprint.route('/api/v1/services/<service>/authorize-by-token', methods=['POST'])

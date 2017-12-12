@@ -258,6 +258,7 @@ class TestCaseLoginToToken(base.TestCase):
             data=json.dumps({
                 'username': 'charles',
                 'password': 'mrfluffy',
+                'csrf-strategy': 'header-token',
             }),
             headers={
                 'Authorization': 'Basic {}'.format(
@@ -285,15 +286,11 @@ class TestCaseLoginToToken(base.TestCase):
         db.session.commit()
 
         response = self.client.post(
-            '/api/v1/authorize-login',
+            '/api/v1/services/myservice/get-token-for-login',
             data=json.dumps({
-                'action': 'myservice:LaunchRocket',
-                'resource': 'arn:myservice:rockets/thrift',
-                'headers': [
-                    ('Authorization', 'Basic {}'.format(
-                        base64.b64encode(b'charles:mrfluffy').decode('utf-8')))
-                ],
-                'context': {},
+                'username': 'charles',
+                'password': 'password',
+                'csrf-strategy': 'header-token',
             }),
             headers={
                 'Authorization': 'Basic {}'.format(
@@ -302,8 +299,7 @@ class TestCaseLoginToToken(base.TestCase):
             },
             content_type='application/json',
         )
-        assert response.status_code == 200
+        assert response.status_code == 401
         assert json.loads(response.get_data(as_text=True)) == {
-            'Authorized': False,
-            'ErrorCode': 'NotPermitted',
+            'message': 'Invalid credentials',
         }
