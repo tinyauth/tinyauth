@@ -1,6 +1,7 @@
 import collections
 import datetime
 import json
+import logging
 import uuid
 
 import jwt
@@ -28,6 +29,7 @@ batch_authorize_parser.add_argument('permit', type=dict, location='json', requir
 batch_authorize_parser.add_argument('headers', type=list, location='json', required=True)
 batch_authorize_parser.add_argument('context', type=dict, location='json', required=True)
 
+logger = logging.getLogger("tinyauth.audit")
 
 @service_blueprint.route('/api/v1/authorize-login', methods=['POST'])
 def service_authorize_login():
@@ -133,5 +135,12 @@ def batch_service_authorize(service):
     if len(result['NotPermitted']) == 0 and len(result['Permitted']) > 0:
         result['Authorized'] = True
         result['Identity'] = step_result['Identity']
+
+    from flask import request
+    audit = dict(
+        request=args,
+        response=result,
+    )
+    logger.info("AuthorizeByToken", extra=audit)
 
     return jsonify(result)

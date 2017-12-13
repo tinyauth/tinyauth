@@ -36,6 +36,9 @@ COPY --from=admin-ui /src/build/static /app/admin-ui/static
 COPY --from=login-ui /src/build/asset-manifest.json /app/login-ui/asset-manifest.json
 COPY --from=login-ui /src/build/static /app/login-ui/static
 
+COPY ./docker/flask/gunicorn.conf /app/etc/gunicorn.conf
+COPY ./docker/flask/logging.conf /app/etc/logging.conf
+
 COPY ./docker/flask/gunicorn.sh /gunicorn.sh
 COPY ./docker/flask/entrypoint.sh /entrypoint.sh
 
