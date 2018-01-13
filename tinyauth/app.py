@@ -62,6 +62,7 @@ def createdevuser():
     db.session.add(p)
 
     u = User(username='root')
+    u.set_password('password')
     u.policies.append(p)
     db.session.add(u)
 
