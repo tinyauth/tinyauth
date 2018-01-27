@@ -4,6 +4,7 @@ volumes:
   postgres_data: {}
   postgres_backup: {}
   nginx_tls: {}
+  audit: {}
 
 services:
   postgres:
@@ -21,11 +22,14 @@ services:
     build:
       context: .
       dockerfile: ./docker/flask/Dockerfile
+    volumes:
+      - audit:/app/var/audit
     depends_on:
       - postgres
     environment:
     - POSTGRES_USER=tinyauth
     - POSTGRES_PASSWORD=tinyauth
+    - AUDIT_LOG_FILENAME=/app/var/audit/audit.log
     restart: always
 
   nginx:

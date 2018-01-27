@@ -1,6 +1,5 @@
 #! /usr/bin/env python3
 
-import logging
 import os
 
 import click
@@ -10,6 +9,8 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.contrib.fixers import ProxyFix
+
+from .audit import setup_audit_log
 
 db = SQLAlchemy()
 
@@ -23,14 +24,13 @@ def create_app(info):
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///app.db')
-    app.config['BUNDLE_ERRORS'] = True
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    app.config['AUDIT_LOG_FILENAME'] = os.environ.get('AUDIT_LOG_FILENAME', None)
 
     db.init_app(app)
 
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG)
-    app.logger.addHandler(handler)
+    setup_audit_log(app)
 
     CORS(app, resources={r'/api/*': {'origins': '*', 'expose_headers': 'Content-Range'}})
 

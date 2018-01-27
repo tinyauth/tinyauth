@@ -6,30 +6,32 @@ import uuid
 
 import jwt
 from flask import Blueprint, Response, jsonify
-from flask_restful import reqparse
 from werkzeug.datastructures import Headers
 
+from ..audit import audit_request, format_headers_for_audit_log
 from ..authorize import (
     external_authorize,
     external_authorize_login,
     internal_authorize,
 )
 from ..models import User
+from ..reqparse import RequestParser
 
 service_blueprint = Blueprint('service', __name__)
 
-authorize_parser = reqparse.RequestParser()
+authorize_parser = RequestParser()
 authorize_parser.add_argument('action', type=str, location='json', required=True)
 authorize_parser.add_argument('resource', type=str, location='json', required=True)
 authorize_parser.add_argument('headers', type=list, location='json', required=True)
 authorize_parser.add_argument('context', type=dict, location='json', required=True)
 
-batch_authorize_parser = reqparse.RequestParser()
+batch_authorize_parser = RequestParser()
 batch_authorize_parser.add_argument('permit', type=dict, location='json', required=True)
 batch_authorize_parser.add_argument('headers', type=list, location='json', required=True)
 batch_authorize_parser.add_argument('context', type=dict, location='json', required=True)
 
 logger = logging.getLogger("tinyauth.audit")
+
 
 @service_blueprint.route('/api/v1/authorize-login', methods=['POST'])
 def service_authorize_login():
@@ -43,6 +45,13 @@ def service_authorize_login():
         headers=Headers(args['headers']),
         context=args['context'],
     )
+
+    logger.info("authorize-by-login", extra={
+        'request.permit': args['action'],
+        'request.headers': format_headers_for_audit_log(args['headers']),
+        'request.context': args['context'],
+        'response': result,
+    })
 
     return jsonify(result)
 
@@ -60,6 +69,14 @@ def service_authorize():
         context=args['context'],
     )
 
+    logger.info("authorize-by-token", extra={
+        'request.legacy': True,
+        'request.permit': args['action'],
+        'request.headers': [': '.join((k, v)) for (k, v) in args['headers']],
+        'request.context': args['context'],
+        'response': result,
+    })
+
     return jsonify(result)
 
 
@@ -67,7 +84,7 @@ def service_authorize():
 def get_token_for_login(service):
     internal_authorize('GetTokenForLogin', f'arn:tinyauth:')
 
-    user_parser = reqparse.RequestParser()
+    user_parser = RequestParser()
     user_parser.add_argument('username', type=str, location='json', required=True)
     user_parser.add_argument('password', type=str, location='json', required=True)
     user_parser.add_argument('csrf-strategy', type=str, location='json', required=True)
@@ -101,14 +118,30 @@ def get_token_for_login(service):
     if 'csrf-token' in token_contents:
         response['csrf'] = token_contents['csrf-token']
 
+    logger.info("get-token-for-login", extra={
+        'request.username': req['username'],
+        'request.csrf-strategy': req['csrf-strategy'],
+        'result.error-code': 'ok',
+    })
+
     return jsonify(response)
 
 
 @service_blueprint.route('/api/v1/services/<service>/authorize-by-token', methods=['POST'])
-def batch_service_authorize(service):
+@audit_request('authorize-by-token')
+def batch_service_authorize(audit_ctx, service):
+    audit_ctx['request.service'] = service
+    audit_ctx['response.authorized'] = False
+
     internal_authorize('BatchAuthorizeByToken', f'arn:tinyauth:')
 
     args = batch_authorize_parser.parse_args()
+
+    audit_ctx.update({
+        'request.permit': args['permit'],
+        'request.headers': format_headers_for_audit_log(args['headers']),
+        'request.context': args['context'],
+    })
 
     result = {
        'Permitted': collections.defaultdict(list),
@@ -132,15 +165,11 @@ def batch_service_authorize(service):
             if not step_result['Authorized']:
                 result['ErrorCode'] = step_result['ErrorCode']
 
-    if len(result['NotPermitted']) == 0 and len(result['Permitted']) > 0:
-        result['Authorized'] = True
-        result['Identity'] = step_result['Identity']
+    audit_ctx['response.permitted'] = dict(result['Permitted'])
+    audit_ctx['response.not-permitted'] = dict(result['NotPermitted'])
 
-    from flask import request
-    audit = dict(
-        request=args,
-        response=result,
-    )
-    logger.info("AuthorizeByToken", extra=audit)
+    if len(result['NotPermitted']) == 0 and len(result['Permitted']) > 0:
+        audit_ctx['response.authorized'] = result['Authorized'] = True
+        audit_ctx['response.identity'] = result['Identity'] = step_result['Identity']
 
     return jsonify(result)

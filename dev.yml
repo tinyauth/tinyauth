@@ -4,6 +4,7 @@ volumes:
   postgres_data: {}
   postgres_backup: {}
   nginx_tls: {}
+  audit: {}
 
 services:
   postgres:
@@ -25,7 +26,9 @@ services:
     environment:
       - POSTGRES_USER=tinyauth
       - POSTGRES_PASSWORD=tinyauth
+      - AUDIT_LOG_FILENAME=/app/var/audit/audit.log
     volumes:
+      - audit:/app/var/audit
       - .:/app/src
     ports:
       - "8000:8000"

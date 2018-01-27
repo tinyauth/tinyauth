@@ -23,6 +23,7 @@ FROM python:3.6
 ENV PYTHONUNBUFFERED 1
 
 RUN groupadd -r flask && useradd -r -g flask flask
+RUN mkdir -p /app/var/audit && chown flask: /app/var/audit
 
 COPY ./requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt

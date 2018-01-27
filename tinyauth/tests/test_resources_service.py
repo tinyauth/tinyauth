@@ -1,5 +1,6 @@
 import base64
 import json
+from unittest import mock
 
 from tinyauth.app import db
 from tinyauth.models import UserPolicy
@@ -83,7 +84,44 @@ class TestCaseToken(base.TestCase):
 
 class TestCaseBatchToken(base.TestCase):
 
-    def test_authorize_service(self):
+    @mock.patch('tinyauth.audit.logger.info')
+    def test_validate_input_failure(self, audit):
+        response = self.client.post(
+            '/api/v1/services/myservice/authorize-by-token',
+            data=json.dumps({
+                'permote': {
+                    'LaunchRocket': ['arn:myservice:rockets/thrift'],
+                },
+                'headers': [
+                    ('Authorization', 'Basic {}'.format(
+                        base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')))
+                ],
+                'context': {},
+            }),
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                ),
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 400
+        assert json.loads(response.get_data(as_text=True)) == {
+            'errors': {
+                'permit': 'Missing required parameter in the JSON body',
+                'permote': 'Unexpected argument',
+            }
+        }
+
+        args, kwargs = audit.call_args_list[0]
+        assert args[0] == 'authorize-by-token'
+        assert kwargs['extra'] == {
+            'request.service': 'myservice',
+            'response.authorized': False,
+        }
+
+    @mock.patch('tinyauth.audit.logger.info')
+    def test_authorize_service(self, audit):
         policy = UserPolicy(name='myserver', user=self.user, policy={
             'Version': '2012-10-17',
             'Statement': [{
@@ -123,7 +161,23 @@ class TestCaseBatchToken(base.TestCase):
             'NotPermitted': {},
         }
 
-    def test_authorize_service_failure(self):
+        args, kwargs = audit.call_args_list[0]
+        assert args[0] == 'authorize-by-token'
+        assert kwargs['extra'] == {
+            'request.service': 'myservice',
+            'request.permit': {
+                'LaunchRocket': ['arn:myservice:rockets/thrift'],
+            },
+            'request.headers': ['Authorization: ** NOT LOGGED **'],
+            'request.context': {},
+            'response.authorized': True,
+            'response.identity': 'charles',
+            'response.permitted': {'LaunchRocket': ['arn:myservice:rockets/thrift']},
+            'response.not-permitted': {},
+        }
+
+    @mock.patch('tinyauth.audit.logger.info')
+    def test_authorize_service_failure(self, audit):
         policy = UserPolicy(name='myserver', user=self.user, policy={
             'Version': '2012-10-17',
             'Statement': [{
@@ -161,6 +215,21 @@ class TestCaseBatchToken(base.TestCase):
             'ErrorCode': 'NotPermitted',
             'NotPermitted': {'LaunchRocket': ['arn:myservice:rockets/thrift']},
             'Permitted': {},
+        }
+
+        args, kwargs = audit.call_args_list[0]
+        assert args[0] == 'authorize-by-token'
+        assert kwargs['extra'] == {
+            'request.service': 'myservice',
+            'request.permit': {
+                'LaunchRocket': ['arn:myservice:rockets/thrift'],
+            },
+            'request.headers': ['Authorization: ** NOT LOGGED **'],
+            'request.context': {},
+            'response.authorized': False,
+            # 'response.identity': 'charles',
+            'response.permitted': {},
+            'response.not-permitted': {'LaunchRocket': ['arn:myservice:rockets/thrift']},
         }
 
 
