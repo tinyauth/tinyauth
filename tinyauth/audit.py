@@ -4,6 +4,8 @@ import logging
 import logging.handlers
 from functools import wraps
 
+from flask import request
+
 from .exceptions import (
     AuthenticationError,
     AuthorizationError,
@@ -76,6 +78,10 @@ def audit_request(event_name):
         @wraps(f)
         def wrapper(*args, **kwargs):
             context = {}
+
+            if 'X-Request-Id' in request.headers:
+                context['request-id'] = request.headers['X-Request-Id']
+
             try:
                 response = f(context, *args, **kwargs)
                 context['http.status'] = getattr(response, 'code', 200)

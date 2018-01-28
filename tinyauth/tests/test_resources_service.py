@@ -116,6 +116,7 @@ class TestCaseBatchToken(base.TestCase):
         args, kwargs = audit.call_args_list[0]
         assert args[0] == 'authorize-by-token'
         assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 401,
             'errors': {'authorization': 'InvalidSignature'},
             'request.service': 'myservice',
@@ -155,6 +156,7 @@ class TestCaseBatchToken(base.TestCase):
         args, kwargs = audit.call_args_list[0]
         assert args[0] == 'authorize-by-token'
         assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 400,
             'errors': {
                 'permit': 'Missing required parameter in the JSON body',
@@ -208,6 +210,7 @@ class TestCaseBatchToken(base.TestCase):
         args, kwargs = audit.call_args_list[0]
         assert args[0] == 'authorize-by-token'
         assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
             'request.service': 'myservice',
             'request.permit': {
@@ -265,6 +268,7 @@ class TestCaseBatchToken(base.TestCase):
         args, kwargs = audit.call_args_list[0]
         assert args[0] == 'authorize-by-token'
         assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
             'request.service': 'myservice',
             'request.permit': {

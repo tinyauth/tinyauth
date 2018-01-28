@@ -1,6 +1,8 @@
 import base64
+import contextlib
 import json
 import unittest
+from unittest import mock
 
 from tinyauth.app import create_app, db
 from tinyauth.models import AccessKey, User, UserPolicy
@@ -9,6 +11,8 @@ from tinyauth.models import AccessKey, User, UserPolicy
 class TestCase(unittest.TestCase):
 
     def setUp(self):
+        self.stack = contextlib.ExitStack()
+
         self.app = create_app(self)
         self.app.config['WTF_CSRF_ENABLED'] = False
         self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
@@ -41,10 +45,14 @@ class TestCase(unittest.TestCase):
 
         db.session.commit()
 
+        uuid4 = self.stack.enter_context(mock.patch('uuid.uuid4'))
+        uuid4.return_value = 'a823a206-95a0-4666-b464-93b9f0606d7b'
+
     def tearDown(self):
         db.session.remove()
         db.drop_all()
         self._ctx.pop()
+        self.stack.close()
 
     def req(self, method, uri, headers=None, body=None):
         actual_headers = {
