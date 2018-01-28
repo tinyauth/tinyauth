@@ -1,10 +1,12 @@
 class IdentityError(Exception):
     key = "IdentityError"
+    status = 401
 
     def asdict(self):
         return {
             "Authorized": False,
-            "ErrorCode": self.key
+            "ErrorCode": self.key,
+            'Status': self.status,
         }
 
 

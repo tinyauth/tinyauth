@@ -1,5 +1,7 @@
-from flask import abort, jsonify, make_response, request
+from flask import jsonify, make_response, request
 from flask_restful import reqparse
+
+from .exceptions import ValidationError
 
 
 class RequestParser(reqparse.RequestParser):
@@ -31,6 +33,6 @@ class RequestParser(reqparse.RequestParser):
             errors[key] = 'Unexpected argument'
 
         if errors:
-            abort(make_response(jsonify(errors=errors), http_error_code))
+            raise ValidationError(response=make_response(jsonify(errors=errors), http_error_code))
 
         return namespace

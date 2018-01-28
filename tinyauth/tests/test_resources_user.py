@@ -79,9 +79,8 @@ class TestCase(unittest.TestCase):
         )
         assert response.status_code == 401
         assert json.loads(response.get_data(as_text=True)) == {
-            'message': {
-                'Authorized': False,
-                'ErrorCode': 'UnsignedRequest',
+            'errors': {
+                'authorization': 'UnsignedRequest'
             }
         }
 
@@ -138,11 +137,10 @@ class TestCase(unittest.TestCase):
             },
             content_type='application/json',
         )
-        assert response.status_code == 401
+        assert response.status_code == 403
         assert json.loads(response.get_data(as_text=True)) == {
-            'message': {
-                'Authorized': False,
-                'ErrorCode': 'NotPermitted',
+            'errors': {
+                'authorization': 'NotPermitted',
             }
         }
 

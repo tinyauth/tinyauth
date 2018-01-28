@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, make_response, request
-from flask_restful import Api, Resource, abort, fields, marshal, reqparse
+from flask_restful import Resource, abort, fields, marshal, reqparse
 
+from tinyauth.api import Api
 from tinyauth.app import db
 from tinyauth.authorize import internal_authorize
 from tinyauth.models import User

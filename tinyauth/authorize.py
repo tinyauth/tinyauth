@@ -1,8 +1,9 @@
 import datetime
 
-from flask import abort, request
+from flask import jsonify, request
 from werkzeug.http import parse_authorization_header
 
+from .exceptions import AuthenticationError, AuthorizationError
 from .identity import identify
 from .identity.exceptions import IdentityError
 from .models import User
@@ -27,6 +28,7 @@ def _authorize_user(user, action, resource, headers, context):
         return {
             'Authorized': False,
             'ErrorCode': 'NotPermitted',
+            'Status': 403,
         }
 
     return {
@@ -52,6 +54,7 @@ def _authorize_login(action, resource, headers, context):
         return {
             'Authorized': False,
             'ErrorCode': 'NoSuchKey',
+            'Status': 401,
         }
 
     auth = parse_authorization_header(headers.get('Authorization'))
@@ -59,6 +62,7 @@ def _authorize_login(action, resource, headers, context):
         return {
             'Authorized': False,
             'ErrorCode': 'NoSuchKey',
+            'Status': 401,
         }
 
     user = User.query.filter(User.username == auth.username).first()
@@ -66,12 +70,14 @@ def _authorize_login(action, resource, headers, context):
         return {
             'Authorized': False,
             'ErrorCode': 'NoSuchKey',
+            'Status': 401,
         }
 
     if not user.is_valid_password(auth.password):
         return {
             'Authorized': False,
             'ErrorCode': 'InvalidSecretKey',
+            'Status': 401,
         }
 
     return _authorize_user(user, action, resource, headers, context)
@@ -100,6 +106,15 @@ def internal_authorize(action, resource, ctx=None):
     )
 
     if authorized['Authorized'] is not True:
-        abort(401, authorized)
+        exception = {
+            401: AuthenticationError,
+            403: AuthorizationError,
+        }[authorized['Status']]
+        errors = {
+            'authorization': authorized['ErrorCode'],
+        }
+        response = jsonify(errors=errors)
+        response.status_code = authorized['Status']
+        raise exception(description=errors, response=response)
 
     return authorized

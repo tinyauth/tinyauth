@@ -79,10 +79,47 @@ class TestCaseToken(base.TestCase):
         assert json.loads(response.get_data(as_text=True)) == {
             'Authorized': False,
             'ErrorCode': 'NotPermitted',
+            'Status': 403,
         }
 
 
 class TestCaseBatchToken(base.TestCase):
+
+    @mock.patch('tinyauth.audit.logger.info')
+    def test_invalid_outer_auth(self, audit):
+        response = self.client.post(
+            '/api/v1/services/myservice/authorize-by-token',
+            data=json.dumps({
+                'permit': {
+                    'LaunchRocket': ['arn:myservice:rockets/thrift'],
+                },
+                'headers': [
+                    ('Authorization', 'Basic {}'.format(
+                        base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')))
+                ],
+                'context': {},
+            }),
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:wrongpassword').decode('utf-8')
+                ),
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 401
+        assert json.loads(response.get_data(as_text=True)) == {
+            'errors': {
+                'authorization': 'InvalidSignature',
+            }
+        }
+
+        args, kwargs = audit.call_args_list[0]
+        assert args[0] == 'authorize-by-token'
+        assert kwargs['extra'] == {
+            'http.status': 401,
+            'request.service': 'myservice',
+            'response.authorized': False,
+        }
 
     @mock.patch('tinyauth.audit.logger.info')
     def test_validate_input_failure(self, audit):
@@ -116,6 +153,7 @@ class TestCaseBatchToken(base.TestCase):
         args, kwargs = audit.call_args_list[0]
         assert args[0] == 'authorize-by-token'
         assert kwargs['extra'] == {
+            'http.status': 400,
             'request.service': 'myservice',
             'response.authorized': False,
         }
@@ -164,6 +202,7 @@ class TestCaseBatchToken(base.TestCase):
         args, kwargs = audit.call_args_list[0]
         assert args[0] == 'authorize-by-token'
         assert kwargs['extra'] == {
+            'http.status': 200,
             'request.service': 'myservice',
             'request.permit': {
                 'LaunchRocket': ['arn:myservice:rockets/thrift'],
@@ -220,6 +259,7 @@ class TestCaseBatchToken(base.TestCase):
         args, kwargs = audit.call_args_list[0]
         assert args[0] == 'authorize-by-token'
         assert kwargs['extra'] == {
+            'http.status': 200,
             'request.service': 'myservice',
             'request.permit': {
                 'LaunchRocket': ['arn:myservice:rockets/thrift'],
@@ -304,6 +344,7 @@ class TestCaseLogin(base.TestCase):
         assert json.loads(response.get_data(as_text=True)) == {
             'Authorized': False,
             'ErrorCode': 'NotPermitted',
+            'Status': 403
         }
 
 
