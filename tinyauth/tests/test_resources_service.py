@@ -143,6 +143,7 @@ class TestCaseBatchToken(base.TestCase):
             },
             content_type='application/json',
         )
+        assert 'X-Request-Id' in response.headers
         assert response.status_code == 400
         assert json.loads(response.get_data(as_text=True)) == {
             'errors': {

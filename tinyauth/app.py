@@ -11,6 +11,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.contrib.fixers import ProxyFix
 
 from .audit import setup_audit_log
+from .middleware import RequestIdMiddleware
 
 db = SQLAlchemy()
 
@@ -22,6 +23,7 @@ def create_app(info):
     )
 
     app.wsgi_app = ProxyFix(app.wsgi_app)
+    RequestIdMiddleware(app)
 
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///app.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
