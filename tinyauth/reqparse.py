@@ -33,6 +33,6 @@ class RequestParser(reqparse.RequestParser):
             errors[key] = 'Unexpected argument'
 
         if errors:
-            raise ValidationError(response=make_response(jsonify(errors=errors), http_error_code))
+            raise ValidationError(description=errors, response=make_response(jsonify(errors=errors), http_error_code))
 
         return namespace

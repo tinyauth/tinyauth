@@ -4,7 +4,12 @@ import logging
 import logging.handlers
 from functools import wraps
 
-from .exceptions import HTTPException
+from .exceptions import (
+    AuthenticationError,
+    AuthorizationError,
+    HTTPException,
+    ValidationError,
+)
 
 AUDIT_LOG_MAX_BYTES = 500 * 1024 * 1024
 AUDIT_LOG_BACKUP_COUNT = 5
@@ -75,6 +80,10 @@ def audit_request(event_name):
                 response = f(context, *args, **kwargs)
                 context['http.status'] = getattr(response, 'code', 200)
                 return response
+            except (ValidationError, AuthorizationError, AuthenticationError) as e:
+                context['http.status'] = e.code
+                context['errors'] = e.description
+                raise e
             except HTTPException as e:
                 context['http.status'] = e.code
                 raise e

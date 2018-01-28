@@ -117,6 +117,7 @@ class TestCaseBatchToken(base.TestCase):
         assert args[0] == 'authorize-by-token'
         assert kwargs['extra'] == {
             'http.status': 401,
+            'errors': {'authorization': 'InvalidSignature'},
             'request.service': 'myservice',
             'response.authorized': False,
         }
@@ -154,6 +155,10 @@ class TestCaseBatchToken(base.TestCase):
         assert args[0] == 'authorize-by-token'
         assert kwargs['extra'] == {
             'http.status': 400,
+            'errors': {
+                'permit': 'Missing required parameter in the JSON body',
+                'permote': 'Unexpected argument',
+            },
             'request.service': 'myservice',
             'response.authorized': False,
         }
