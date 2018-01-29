@@ -9,9 +9,6 @@ from .base import TestCase
 
 class TestCase(TestCase):
 
-    def fixture_charles(self):
-        pass
-
     def test_list_users(self):
         response = self.client.get(
             '/api/v1/users',
@@ -49,6 +46,7 @@ class TestCase(TestCase):
             '/api/v1/users',
             data=json.dumps({
                 'username': 'freddy',
+                'password': 'mrbiggles',
             }),
             headers={
                 'Authorization': 'Basic {}'.format(
@@ -216,3 +214,44 @@ class TestCase(TestCase):
             'id': 2,
             'username': 'freddy'
         }
+
+    def test_get_user_with_auth_but_no_perms_404(self):
+        user = User(username='freddy')
+        db.session.add(user)
+
+        access_key = AccessKey(
+            access_key_id='AKIDEXAMPLE2',
+            secret_access_key='password',
+            user=user,
+        )
+        db.session.add(access_key)
+
+        db.session.commit()
+
+        response = self.client.get(
+            '/api/v1/users/9999999',
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE2:password').decode('utf-8')
+                )
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 403
+        assert json.loads(response.get_data(as_text=True)) == {
+            'errors': {
+                'authorization': 'NotPermitted',
+            }
+        }
+
+    def test_get_user_with_auth_404(self):
+        response = self.client.get(
+            '/api/v1/users/9999999',
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                )
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 404
