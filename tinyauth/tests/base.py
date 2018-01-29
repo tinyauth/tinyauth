@@ -10,6 +10,21 @@ from tinyauth.models import AccessKey, User, UserPolicy
 
 class TestCase(unittest.TestCase):
 
+    def patch(self, *args, **kwargs):
+        patcher = mock.patch(*args, **kwargs)
+        self.addCleanup(patcher.stop)
+        return patcher.start()
+
+    def patch_object(self, *args, **kwargs):
+        patcher = mock.patch.object(*args, **kwargs)
+        self.addCleanup(patcher.stop)
+        return patcher.start()
+
+    def patch_dict(self, *args, **kwargs):
+        patcher = mock.patch.dict(*args, **kwargs)
+        self.addCleanup(patcher.stop)
+        return patcher.start()
+
     def setUp(self):
         self.stack = contextlib.ExitStack()
 

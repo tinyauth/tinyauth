@@ -43,6 +43,10 @@ class AuditFormatter(logging.Formatter):
 
         return str(obj)
 
+    def formatTime(self, record, datefmt=None):
+        ct = datetime.datetime.fromtimestamp(record.created)
+        return ct.isoformat()
+
     def format(self, record):
         message = {}
 
