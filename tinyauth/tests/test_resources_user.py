@@ -5,54 +5,15 @@ import unittest
 from tinyauth.app import create_app, db
 from tinyauth.models import AccessKey, User, UserPolicy
 
+from .base import TestCase
 
-class TestCase(unittest.TestCase):
 
-    def setUp(self):
-        self.app = create_app(self)
-        self.app.debug = True
-        self.app.config['BUNDLE_ERRORS'] = True
-        self.app.config['TESTING'] = True
-        self.app.config['DEBUG'] = True
-        self.app.config['WTF_CSRF_ENABLED'] = False
-        self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-        self.client = self.app.test_client()
-        db.create_all(app=self.app)
-
-        self._ctx = self.app.test_request_context()
-        self._ctx.push()
-
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-        self._ctx.pop()
+class TestCase(TestCase):
 
     def fixture_charles(self):
-        user = User(username='charles')
-        db.session.add(user)
-
-        policy = UserPolicy(name='tinyauth', user=user, policy={
-            'Version': '2012-10-17',
-            'Statement': [{
-                'Action': 'tinyauth:*',
-                'Resource': 'arn:tinyauth:*',
-                'Effect': 'Allow',
-            }]
-        })
-        db.session.add(policy)
-
-        access_key = AccessKey(
-            access_key_id='AKIDEXAMPLE',
-            secret_access_key='password',
-            user=user,
-        )
-        db.session.add(access_key)
-
-        db.session.commit()
+        pass
 
     def test_list_users(self):
-        self.fixture_charles()
-
         response = self.client.get(
             '/api/v1/users',
             headers={
@@ -85,8 +46,6 @@ class TestCase(unittest.TestCase):
         }
 
     def test_create_user_with_auth(self):
-        self.fixture_charles()
-
         response = self.client.post(
             '/api/v1/users',
             data=json.dumps({
@@ -103,24 +62,11 @@ class TestCase(unittest.TestCase):
         assert json.loads(response.get_data(as_text=True)) == {'id': 2, 'username': 'freddy', 'groups': []}
 
     def test_delete_user_with_auth_but_no_perms(self):
-        user = User(username='charles')
-        db.session.add(user)
-
-        policy = UserPolicy(name='tinyauth', user=user, policy={
-            'Version': '2012-10-17',
-            'Statement': [{
-                'Action': 'tinyauth:*',
-                'Resource': 'arn:tinyauth:*',
-                'Effect': 'Allow',
-            }]
-        })
-        db.session.add(policy)
-
         user = User(username='freddy')
         db.session.add(user)
 
         access_key = AccessKey(
-            access_key_id='AKIDEXAMPLE',
+            access_key_id='AKIDEXAMPLE2',
             secret_access_key='password',
             user=user,
         )
@@ -132,7 +78,7 @@ class TestCase(unittest.TestCase):
             '/api/v1/users/1',
             headers={
                 'Authorization': 'Basic {}'.format(
-                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                    base64.b64encode(b'AKIDEXAMPLE2:password').decode('utf-8')
                 )
             },
             content_type='application/json',
@@ -145,26 +91,6 @@ class TestCase(unittest.TestCase):
         }
 
     def test_delete_user_with_auth(self):
-        user = User(username='charles')
-        db.session.add(user)
-
-        policy = UserPolicy(name='tinyauth', user=user, policy={
-            'Version': '2012-10-17',
-            'Statement': [{
-                'Action': 'tinyauth:*',
-                'Resource': 'arn:tinyauth:*',
-                'Effect': 'Allow',
-            }]
-        })
-        db.session.add(policy)
-
-        access_key = AccessKey(
-            access_key_id='AKIDEXAMPLE',
-            secret_access_key='password',
-            user=user,
-        )
-        db.session.add(access_key)
-
         user = User(username='freddy')
         db.session.add(user)
 
@@ -183,24 +109,11 @@ class TestCase(unittest.TestCase):
         assert json.loads(response.get_data(as_text=True)) == {}
 
     def test_put_user_with_auth_but_no_perms(self):
-        user = User(username='charles')
-        db.session.add(user)
-
-        policy = UserPolicy(name='tinyauth', user=user, policy={
-            'Version': '2012-10-17',
-            'Statement': [{
-                'Action': 'tinyauth:*',
-                'Resource': 'arn:tinyauth:*',
-                'Effect': 'Allow',
-            }]
-        })
-        db.session.add(policy)
-
         user = User(username='freddy')
         db.session.add(user)
 
         access_key = AccessKey(
-            access_key_id='AKIDEXAMPLE',
+            access_key_id='AKIDEXAMPLE2',
             secret_access_key='password',
             user=user,
         )
@@ -216,7 +129,7 @@ class TestCase(unittest.TestCase):
             }),
             headers={
                 'Authorization': 'Basic {}'.format(
-                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                    base64.b64encode(b'AKIDEXAMPLE2:password').decode('utf-8')
                 )
             },
             content_type='application/json',
@@ -229,26 +142,6 @@ class TestCase(unittest.TestCase):
         }
 
     def test_put_user_with_auth(self):
-        user = User(username='charles')
-        db.session.add(user)
-
-        policy = UserPolicy(name='tinyauth', user=user, policy={
-            'Version': '2012-10-17',
-            'Statement': [{
-                'Action': 'tinyauth:*',
-                'Resource': 'arn:tinyauth:*',
-                'Effect': 'Allow',
-            }]
-        })
-        db.session.add(policy)
-
-        access_key = AccessKey(
-            access_key_id='AKIDEXAMPLE',
-            secret_access_key='password',
-            user=user,
-        )
-        db.session.add(access_key)
-
         user = User(username='freddy')
         db.session.add(user)
 
@@ -275,24 +168,11 @@ class TestCase(unittest.TestCase):
         }
 
     def test_get_user_with_auth_but_no_perms(self):
-        user = User(username='charles')
-        db.session.add(user)
-
-        policy = UserPolicy(name='tinyauth', user=user, policy={
-            'Version': '2012-10-17',
-            'Statement': [{
-                'Action': 'tinyauth:*',
-                'Resource': 'arn:tinyauth:*',
-                'Effect': 'Allow',
-            }]
-        })
-        db.session.add(policy)
-
         user = User(username='freddy')
         db.session.add(user)
 
         access_key = AccessKey(
-            access_key_id='AKIDEXAMPLE',
+            access_key_id='AKIDEXAMPLE2',
             secret_access_key='password',
             user=user,
         )
@@ -304,7 +184,7 @@ class TestCase(unittest.TestCase):
             '/api/v1/users/1',
             headers={
                 'Authorization': 'Basic {}'.format(
-                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                    base64.b64encode(b'AKIDEXAMPLE2:password').decode('utf-8')
                 )
             },
             content_type='application/json',
@@ -317,26 +197,6 @@ class TestCase(unittest.TestCase):
         }
 
     def test_get_user_with_auth(self):
-        user = User(username='charles')
-        db.session.add(user)
-
-        policy = UserPolicy(name='tinyauth', user=user, policy={
-            'Version': '2012-10-17',
-            'Statement': [{
-                'Action': 'tinyauth:*',
-                'Resource': 'arn:tinyauth:*',
-                'Effect': 'Allow',
-            }]
-        })
-        db.session.add(policy)
-
-        access_key = AccessKey(
-            access_key_id='AKIDEXAMPLE',
-            secret_access_key='password',
-            user=user,
-        )
-        db.session.add(access_key)
-
         user = User(username='freddy')
         db.session.add(user)
 
