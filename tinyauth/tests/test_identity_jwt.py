@@ -71,4 +71,8 @@ class TestCaseIdentityJWT(base.TestCase):
             'groups': [],
             'id': 1,
             'username': 'charles',
+        }, {
+            'groups': [],
+            'id': 2,
+            'username': 'freddy',
         }]

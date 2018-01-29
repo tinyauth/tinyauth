@@ -39,7 +39,7 @@ class TestCase(base.TestCase):
         response = self.req('get', '/api/v1/users/1/keys')
         assert len(json.loads(response.get_data(as_text=True))) == 2
 
-        response = self.req('delete', '/api/v1/users/1/keys/2')
+        response = self.req('delete', '/api/v1/users/1/keys/3')
 
         assert response.status_code == 201
         assert json.loads(response.get_data(as_text=True)) == {}

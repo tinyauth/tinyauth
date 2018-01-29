@@ -24,6 +24,10 @@ class TestCase(TestCase):
             'groups': [],
             'id': 1,
             'username': 'charles',
+        }, {
+            'groups': [],
+            'id': 2,
+            'username': 'freddy',
         }]
 
     def test_create_user_noauth(self):
@@ -45,8 +49,8 @@ class TestCase(TestCase):
         response = self.client.post(
             '/api/v1/users',
             data=json.dumps({
-                'username': 'freddy',
-                'password': 'mrbiggles',
+                'username': 'mruser',
+                'password': 'pAssword',
             }),
             headers={
                 'Authorization': 'Basic {}'.format(
@@ -56,7 +60,7 @@ class TestCase(TestCase):
             content_type='application/json',
         )
         assert response.status_code == 200
-        assert json.loads(response.get_data(as_text=True)) == {'id': 2, 'username': 'freddy', 'groups': []}
+        assert json.loads(response.get_data(as_text=True)) == {'id': 3, 'username': 'mruser', 'groups': []}
 
     def test_delete_user_with_auth_but_no_perms(self):
         user = User(username='freddy')

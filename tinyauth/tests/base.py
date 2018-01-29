@@ -43,6 +43,16 @@ class TestCase(unittest.TestCase):
         )
         db.session.add(access_key)
 
+        self.user2 = user = User(username='freddy')
+        user.set_password('mrfluffy2')
+        db.session.add(user)
+
+        db.session.add(AccessKey(
+            access_key_id='AKIDEXAMPLE2',
+            secret_access_key='password',
+            user=user,
+        ))
+
         db.session.commit()
 
         uuid4 = self.stack.enter_context(mock.patch('uuid.uuid4'))
