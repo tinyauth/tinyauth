@@ -1,0 +1,19 @@
+# You can find the full configuration reference here:
+# https://www.elastic.co/guide/en/beats/filebeat/index.html
+
+filebeat.prospectors:
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/audit/audit.log
+
+setup.template.settings:
+  index.number_of_shards: 3
+
+
+name: tinyauth
+
+
+output.logstash:
+  hosts: ${LOGSTASH_HOST}

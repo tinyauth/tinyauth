@@ -1,0 +1,14 @@
+version: '2'
+
+volumes:
+  filebeat_state: {}
+
+services:
+  filebeat:
+    build: ./docker/filebeat
+    volumes:
+      - filebeat_state:/var/filebeat
+      - /var/lib/docker/volumes/tinyauth_audit/_data:/var/log/audit
+    environment:
+    - LOGSTASH_HOST=10.10.20.27:5044
+    restart: always
