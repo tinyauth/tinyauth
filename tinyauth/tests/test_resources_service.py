@@ -11,6 +11,104 @@ from . import base
 class TestCaseToken(base.TestCase):
 
     @mock.patch('tinyauth.audit.logger.info')
+    def test_authorize_service_invalid_outer_auth(self, audit):
+        policy = UserPolicy(name='myserver', user=self.user, policy={
+            'Version': '2012-10-17',
+            'Statement': [{
+                'Action': 'myservice:*',
+                'Resource': '*',
+                'Effect': 'Allow',
+            }]
+        })
+        db.session.add(policy)
+
+        db.session.commit()
+
+        response = self.client.post(
+            '/api/v1/authorize',
+            data=json.dumps({
+                'action': 'myservice:LaunchRocket',
+                'resource': 'arn:myservice:rockets/thrift',
+                'headers': [
+                    ('Authorization', 'Basic {}'.format(
+                        base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')))
+                ],
+                'context': {},
+            }),
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:pword').decode('utf-8')
+                )
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 401
+        assert json.loads(response.get_data(as_text=True)) == {
+            'errors': {'authorization': 'InvalidSignature'}
+        }
+
+        args, kwargs = audit.call_args_list[0]
+        assert args[0] == 'authorize-by-token'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 401,
+            'request.legacy': True,
+            'errors': {'authorization': 'InvalidSignature'},
+        }
+
+    @mock.patch('tinyauth.audit.logger.info')
+    def test_authorize_service_invalid_params(self, audit):
+        policy = UserPolicy(name='myserver', user=self.user, policy={
+            'Version': '2012-10-17',
+            'Statement': [{
+                'Action': 'myservice:*',
+                'Resource': '*',
+                'Effect': 'Allow',
+            }]
+        })
+        db.session.add(policy)
+
+        db.session.commit()
+
+        response = self.client.post(
+            '/api/v1/authorize',
+            data=json.dumps({
+                'action': 'myservice:LaunchRocket',
+                'reesource': 'arn:myservice:rockets/thrift',
+                'headers': [
+                    ('Authorization', 'Basic {}'.format(
+                        base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')))
+                ],
+                'context': {},
+            }),
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                )
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 400
+        assert json.loads(response.get_data(as_text=True)) == {
+            'errors': {
+                'reesource': 'Unexpected argument',
+                'resource': 'Missing required parameter in the JSON body'
+            }
+        }
+
+        args, kwargs = audit.call_args_list[0]
+        assert args[0] == 'authorize-by-token'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 400,
+            'request.legacy': True,
+            'errors': {
+                'reesource': 'Unexpected argument',
+                'resource': 'Missing required parameter in the JSON body'
+            }
+        }
+
+    @mock.patch('tinyauth.audit.logger.info')
     def test_authorize_service(self, audit):
         policy = UserPolicy(name='myserver', user=self.user, policy={
             'Version': '2012-10-17',
