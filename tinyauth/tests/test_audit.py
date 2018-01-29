@@ -13,6 +13,8 @@ class TestAudit(TestCase):
     def setUp(self):
         super().setUp()
 
+        self.app.config['AUDIT_LOG_FILENAME'] = '/tmp/tinyauth/audit.log'
+
         self.addCleanup(importlib.reload, logging)
         self.addCleanup(logging.shutdown)
 
