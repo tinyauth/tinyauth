@@ -109,7 +109,7 @@ def login_post():
         'exp': expires,
         'iat': datetime.datetime.utcnow(),
         'csrf-token': csrf_token,
-    }, 'secret', algorithm='HS256')
+    }, current_app.config['SECRET_SIGNING_KEY'], algorithm='HS256')
 
     response = jsonify({})
     response.set_cookie('tinysess', jwt_token, httponly=True, secure=True, expires=expires)
