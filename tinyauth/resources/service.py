@@ -1,11 +1,10 @@
 import collections
 import datetime
-import json
 import logging
 import uuid
 
 import jwt
-from flask import Blueprint, Response, jsonify
+from flask import Blueprint, jsonify
 from werkzeug.datastructures import Headers
 
 from ..audit import audit_request, format_headers_for_audit_log
@@ -14,6 +13,7 @@ from ..authorize import (
     external_authorize_login,
     internal_authorize,
 )
+from ..exceptions import AuthenticationError
 from ..models import User
 from ..reqparse import RequestParser
 
@@ -34,10 +34,15 @@ logger = logging.getLogger("tinyauth.audit")
 
 
 @service_blueprint.route('/api/v1/authorize-login', methods=['POST'])
-def service_authorize_login():
+@audit_request('authorize-by-login')
+def service_authorize_login(audit_ctx):
     internal_authorize('Authorize', f'arn:tinyauth:')
 
     args = authorize_parser.parse_args()
+
+    audit_ctx['request.permit'] = args['action']
+    audit_ctx['request.headers'] = format_headers_for_audit_log(args['headers'])
+    audit_ctx['request.context'] = args['context']
 
     result = external_authorize_login(
         action=args['action'],
@@ -46,21 +51,25 @@ def service_authorize_login():
         context=args['context'],
     )
 
-    logger.info("authorize-by-login", extra={
-        'request.permit': args['action'],
-        'request.headers': format_headers_for_audit_log(args['headers']),
-        'request.context': args['context'],
-        'response': result,
-    })
+    audit_ctx['response.authorized'] = result['Authorized']
+    if 'Identity' in result:
+        audit_ctx['response.identity'] = result['Identity']
 
     return jsonify(result)
 
 
 @service_blueprint.route('/api/v1/authorize', methods=['POST'])
-def service_authorize():
+@audit_request('authorize-by-token')
+def service_authorize(audit_ctx):
+    audit_ctx['request.legacy'] = True
+
     internal_authorize('Authorize', f'arn:tinyauth:')
 
     args = authorize_parser.parse_args()
+
+    audit_ctx['request.permit'] = args['action']
+    audit_ctx['request.headers'] = format_headers_for_audit_log(args['headers'])
+    audit_ctx['request.context'] = args['context']
 
     result = external_authorize(
         action=args['action'],
@@ -69,19 +78,16 @@ def service_authorize():
         context=args['context'],
     )
 
-    logger.info("authorize-by-token", extra={
-        'request.legacy': True,
-        'request.permit': args['action'],
-        'request.headers': [': '.join((k, v)) for (k, v) in args['headers']],
-        'request.context': args['context'],
-        'response': result,
-    })
+    audit_ctx['response.authorized'] = result['Authorized']
+    if 'Identity' in result:
+        audit_ctx['response.identity'] = result['Identity']
 
     return jsonify(result)
 
 
 @service_blueprint.route('/api/v1/services/<service>/get-token-for-login', methods=['POST'])
-def get_token_for_login(service):
+@audit_request('get-token-for-login')
+def get_token_for_login(audit_ctx, service):
     internal_authorize('GetTokenForLogin', f'arn:tinyauth:')
 
     user_parser = RequestParser()
@@ -90,15 +96,24 @@ def get_token_for_login(service):
     user_parser.add_argument('csrf-strategy', type=str, location='json', required=True)
     req = user_parser.parse_args()
 
+    audit_ctx['request.username'] = req['username']
+    audit_ctx['request.csrf-strategy'] = req['csrf-strategy']
+
+    errors = {
+        'authentication': 'Invalid credentials',
+    }
+    response = jsonify(errors=errors)
+    response.status_code = 401
+
     if req['csrf-strategy'] not in ('header-token', 'cookie', 'none'):
-        return Response('', 401)
+        raise AuthenticationError(description=errors, response=response)
 
     user = User.query.filter(User.username == req['username']).first()
     if not user or not user.password:
-        return Response(json.dumps({'message': 'Invalid credentials'}), 401)
+        raise AuthenticationError(description=errors, response=response)
 
     if not user.is_valid_password(req['password']):
-        return Response(json.dumps({'message': 'Invalid credentials'}), 401)
+        raise AuthenticationError(description=errors, response=response)
 
     expires = datetime.datetime.utcnow() + datetime.timedelta(hours=8)
 
@@ -117,12 +132,6 @@ def get_token_for_login(service):
     response = {'token': jwt_token.decode('utf-8')}
     if 'csrf-token' in token_contents:
         response['csrf'] = token_contents['csrf-token']
-
-    logger.info("get-token-for-login", extra={
-        'request.username': req['username'],
-        'request.csrf-strategy': req['csrf-strategy'],
-        'result.error-code': 'ok',
-    })
 
     return jsonify(response)
 

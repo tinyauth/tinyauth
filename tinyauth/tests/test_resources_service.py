@@ -10,7 +10,8 @@ from . import base
 
 class TestCaseToken(base.TestCase):
 
-    def test_authorize_service(self):
+    @mock.patch('tinyauth.audit.logger.info')
+    def test_authorize_service(self, audit):
         policy = UserPolicy(name='myserver', user=self.user, policy={
             'Version': '2012-10-17',
             'Statement': [{
@@ -44,7 +45,21 @@ class TestCaseToken(base.TestCase):
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {'Authorized': True, 'Identity': 'charles'}
 
-    def test_authorize_service_failure(self):
+        args, kwargs = audit.call_args_list[0]
+        assert args[0] == 'authorize-by-token'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.legacy': True,
+            'request.permit': 'myservice:LaunchRocket',
+            'request.headers': ['Authorization: ** NOT LOGGED **'],
+            'request.context': {},
+            'response.authorized': True,
+            'response.identity': 'charles',
+        }
+
+    @mock.patch('tinyauth.audit.logger.info')
+    def test_authorize_service_failure(self, audit):
         policy = UserPolicy(name='myserver', user=self.user, policy={
             'Version': '2012-10-17',
             'Statement': [{
@@ -80,6 +95,18 @@ class TestCaseToken(base.TestCase):
             'Authorized': False,
             'ErrorCode': 'NotPermitted',
             'Status': 403,
+        }
+
+        args, kwargs = audit.call_args_list[0]
+        assert args[0] == 'authorize-by-token'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.legacy': True,
+            'request.permit': 'myservice:LaunchRocket',
+            'request.headers': ['Authorization: ** NOT LOGGED **'],
+            'request.context': {},
+            'response.authorized': False,
         }
 
 
@@ -285,7 +312,8 @@ class TestCaseBatchToken(base.TestCase):
 
 class TestCaseLogin(base.TestCase):
 
-    def test_authorize_service(self):
+    @mock.patch('tinyauth.audit.logger.info')
+    def test_authorize_service(self, audit):
         policy = UserPolicy(name='myserver', user=self.user, policy={
             'Version': '2012-10-17',
             'Statement': [{
@@ -319,7 +347,20 @@ class TestCaseLogin(base.TestCase):
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {'Authorized': True, 'Identity': 'charles'}
 
-    def test_authorize_service_failure(self):
+        args, kwargs = audit.call_args_list[0]
+        assert args[0] == 'authorize-by-login'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.permit': 'myservice:LaunchRocket',
+            'request.headers': ['Authorization: ** NOT LOGGED **'],
+            'request.context': {},
+            'response.authorized': True,
+            'response.identity': 'charles',
+        }
+
+    @mock.patch('tinyauth.audit.logger.info')
+    def test_authorize_service_failure(self, audit):
         policy = UserPolicy(name='myserver', user=self.user, policy={
             'Version': '2012-10-17',
             'Statement': [{
@@ -357,10 +398,22 @@ class TestCaseLogin(base.TestCase):
             'Status': 403
         }
 
+        args, kwargs = audit.call_args_list[0]
+        assert args[0] == 'authorize-by-login'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.permit': 'myservice:LaunchRocket',
+            'request.headers': ['Authorization: ** NOT LOGGED **'],
+            'request.context': {},
+            'response.authorized': False,
+        }
+
 
 class TestCaseLoginToToken(base.TestCase):
 
-    def test_authorize_service(self):
+    @mock.patch('tinyauth.audit.logger.info')
+    def test_authorize_service(self, audit):
         policy = UserPolicy(name='myserver', user=self.user, policy={
             'Version': '2012-10-17',
             'Statement': [{
@@ -392,7 +445,17 @@ class TestCaseLoginToToken(base.TestCase):
         assert 'token' in payload
         assert 'csrf' in payload
 
-    def test_authorize_service_failure(self):
+        args, kwargs = audit.call_args_list[0]
+        assert args[0] == 'get-token-for-login'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.username': 'charles',
+            'request.csrf-strategy': 'header-token',
+        }
+
+    @mock.patch('tinyauth.audit.logger.info')
+    def test_authorize_service_failure(self, audit):
         policy = UserPolicy(name='myserver', user=self.user, policy={
             'Version': '2012-10-17',
             'Statement': [{
@@ -421,5 +484,15 @@ class TestCaseLoginToToken(base.TestCase):
         )
         assert response.status_code == 401
         assert json.loads(response.get_data(as_text=True)) == {
-            'message': 'Invalid credentials',
+            'errors': {'authentication': 'Invalid credentials'}
+        }
+
+        args, kwargs = audit.call_args_list[0]
+        assert args[0] == 'get-token-for-login'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 401,
+            'errors': {'authentication': 'Invalid credentials'},
+            'request.username': 'charles',
+            'request.csrf-strategy': 'header-token',
         }
