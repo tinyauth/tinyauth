@@ -15,7 +15,6 @@ from werkzeug.contrib.fixers import ProxyFix
 from .audit import setup_audit_log
 from .middleware import RequestIdMiddleware
 
-
 logger = logging.getLogger('tinyauth.app')
 
 db = SQLAlchemy()
