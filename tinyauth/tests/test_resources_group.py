@@ -264,3 +264,83 @@ class TestCase(unittest.TestCase):
         )
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {'id': 1, 'name': 'devs'}
+
+    def test_get_group_with_auth_but_no_perms(self):
+        user = User(username='charles')
+        db.session.add(user)
+
+        policy = UserPolicy(name='tinyauth', user=user, policy={
+            'Version': '2012-10-17',
+            'Statement': [{
+                'Action': 'tinyauth:DeleteUser',
+                'Resource': 'arn:tinyauth:*',
+                'Effect': 'Allow',
+            }]
+        })
+        db.session.add(policy)
+
+        grp = Group(name='freddy')
+        db.session.add(grp)
+
+        access_key = AccessKey(
+            access_key_id='AKIDEXAMPLE',
+            secret_access_key='password',
+            user=user,
+        )
+        db.session.add(access_key)
+
+        db.session.commit()
+
+        response = self.client.get(
+            '/api/v1/groups/1',
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                )
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 403
+        assert json.loads(response.get_data(as_text=True)) == {
+            'errors': {
+                'authorization': 'NotPermitted'
+            }
+        }
+
+    def test_get_group_with_auth(self):
+        user = User(username='charles')
+        db.session.add(user)
+
+        policy = UserPolicy(name='tinyauth', user=user, policy={
+            'Version': '2012-10-17',
+            'Statement': [{
+                'Action': 'tinyauth:*',
+                'Resource': 'arn:tinyauth:*',
+                'Effect': 'Allow',
+            }]
+        })
+        db.session.add(policy)
+
+        access_key = AccessKey(
+            access_key_id='AKIDEXAMPLE',
+            secret_access_key='password',
+            user=user,
+        )
+        db.session.add(access_key)
+
+        grp = Group(name='devs')
+        db.session.add(grp)
+
+        db.session.commit()
+
+        response = self.client.get(
+            '/api/v1/groups/1',
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                )
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 200
+        assert json.loads(response.get_data(as_text=True)) == {'id': 1, 'name': 'devs'}
