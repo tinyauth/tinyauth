@@ -1,4 +1,5 @@
 import jwt
+from flask import current_app
 from werkzeug.http import parse_cookie
 
 from . import exceptions
@@ -13,10 +14,12 @@ def parse_session(headers):
     if 'tinysess' not in cookies:
         raise exceptions.Unsigned()
 
+    secret = current_app.config['SECRET_SIGNING_KEY']
+
     try:
-        token = jwt.decode(cookies['tinysess'], 'secret')
+        token = jwt.decode(cookies['tinysess'], secret)
     except:
-        token = jwt.decode(cookies['tinysess'], 'secret', verify=False)
+        token = jwt.decode(cookies['tinysess'], secret, verify=False)
         raise exceptions.InvalidSignature(identity=token.get('user', 'unknown'))
 
     if 'csrf-token' in token:

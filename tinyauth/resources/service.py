@@ -4,7 +4,7 @@ import logging
 import uuid
 
 import jwt
-from flask import Blueprint, jsonify
+from flask import Blueprint, current_app, jsonify
 from werkzeug.datastructures import Headers
 
 from ..audit import audit_request, format_headers_for_audit_log
@@ -127,7 +127,11 @@ def get_token_for_login(audit_ctx, service):
     if req['csrf-strategy'] == 'header-token':
         token_contents['csrf-token'] = str(uuid.uuid4())
 
-    jwt_token = jwt.encode(token_contents, 'secret', algorithm='HS256')
+    jwt_token = jwt.encode(
+        token_contents,
+        current_app.config['SECRET_SIGNING_KEY'],
+        algorithm='HS256',
+    )
 
     response = {'token': jwt_token.decode('utf-8')}
     if 'csrf-token' in token_contents:

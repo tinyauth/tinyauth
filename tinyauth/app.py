@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 
+import logging
 import os
+import secrets
 
 import click
 from flask import Flask
@@ -12,6 +14,9 @@ from werkzeug.contrib.fixers import ProxyFix
 
 from .audit import setup_audit_log
 from .middleware import RequestIdMiddleware
+
+
+logger = logging.getLogger('tinyauth.app')
 
 db = SQLAlchemy()
 
@@ -29,6 +34,12 @@ def create_app(info):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     app.config['AUDIT_LOG_FILENAME'] = os.environ.get('AUDIT_LOG_FILENAME', None)
+
+    if 'SECRET_SIGNING_KEY' not in os.environ:
+        logger.critical('*** DANGER: SECRET_SIGNING_KEY not set; using random default ***')
+        app.config['SECRET_SIGNING_KEY'] = secrets.token_hex(64)
+    else:
+        app.config['SECRET_SIGNING_KEY'] = os.environ['SECRET_SIGNING_KEY']
 
     db.init_app(app)
 
