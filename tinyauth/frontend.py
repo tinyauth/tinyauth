@@ -39,7 +39,7 @@ def get_session():
         return None
 
     try:
-        token = jwt.decode(session, 'secret')
+        token = jwt.decode(session, current_app.config['SECRET_SIGNING_KEY'])
     except jwt.InvalidTokenError:
         return None
 
