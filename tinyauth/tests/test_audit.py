@@ -13,6 +13,9 @@ class TestAudit(TestCase):
     def setUp(self):
         super().setUp()
 
+        # FIXME: Refactor class hierarchy so this isn't needed
+        self.stack.close()
+
         self.app.config['AUDIT_LOG_FILENAME'] = '/tmp/tinyauth/audit.log'
 
         self.addCleanup(importlib.reload, logging)

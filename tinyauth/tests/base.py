@@ -73,6 +73,8 @@ class TestCase(unittest.TestCase):
         uuid4 = self.stack.enter_context(mock.patch('uuid.uuid4'))
         uuid4.return_value = 'a823a206-95a0-4666-b464-93b9f0606d7b'
 
+        self.audit_log = self.stack.enter_context(mock.patch('tinyauth.audit.logger.info'))
+
     def tearDown(self):
         db.session.remove()
         db.drop_all()
