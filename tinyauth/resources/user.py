@@ -37,6 +37,7 @@ class UserResource(Resource):
         internal_authorize('GetUser', f'arn:tinyauth:users/{user_id}')
 
         user = self._get_or_404(user_id)
+        audit_ctx['request.username'] = user.username
         return jsonify(marshal(user, user_fields))
 
     @audit_request_cbv('UpdateUser')
@@ -46,6 +47,8 @@ class UserResource(Resource):
         args = user_parser.parse_args()
 
         user = self._get_or_404(user_id)
+        audit_ctx['request.username'] = user.username
+
         if 'username' in args:
             user.username = args['username']
         if 'password' in args:
@@ -61,6 +64,7 @@ class UserResource(Resource):
         internal_authorize('DeleteUser', f'arn:tinyauth:users/{user_id}')
 
         user = self._get_or_404(user_id)
+        audit_ctx['request.username'] = user.username
         db.session.delete(user)
 
         return make_response(jsonify({}), 201, [])
@@ -68,7 +72,7 @@ class UserResource(Resource):
 
 class UsersResource(Resource):
 
-    @audit_request_cbv('ListUser')
+    @audit_request_cbv('ListUsers')
     def get(self, audit_ctx):
         internal_authorize('ListUsers', f'arn:tinyauth:users/')
 
@@ -77,6 +81,8 @@ class UsersResource(Resource):
     @audit_request_cbv('CreateUser')
     def post(self, audit_ctx):
         args = user_parser.parse_args()
+
+        audit_ctx['request.username'] = args['username']
 
         internal_authorize('CreateUser', f'arn:tinyauth:users/args["username"]')
 

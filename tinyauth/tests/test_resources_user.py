@@ -30,6 +30,13 @@ class TestCase(TestCase):
             'username': 'freddy',
         }]
 
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'ListUsers'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+        }
+
     def test_create_user_noauth(self):
         response = self.client.post(
             '/api/v1/users',
@@ -43,6 +50,15 @@ class TestCase(TestCase):
             'errors': {
                 'authorization': 'UnsignedRequest'
             }
+        }
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'CreateUser'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 401,
+            'request.username': 'freddy',
+            'errors': {'authorization': 'UnsignedRequest'},
         }
 
     def test_create_user_with_auth(self):
@@ -61,6 +77,14 @@ class TestCase(TestCase):
         )
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {'id': 3, 'username': 'mruser', 'groups': []}
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'CreateUser'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'request.username': 'mruser',
+            'http.status': 200,
+        }
 
     def test_delete_user_with_auth_but_no_perms(self):
         user = User(username='freddy')
@@ -91,6 +115,14 @@ class TestCase(TestCase):
             }
         }
 
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'DeleteUser'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 403,
+            'errors': {'authorization': 'NotPermitted'},
+        }
+
     def test_delete_user_with_auth(self):
         user = User(username='freddy')
         db.session.add(user)
@@ -108,6 +140,14 @@ class TestCase(TestCase):
         )
         assert response.status_code == 201
         assert json.loads(response.get_data(as_text=True)) == {}
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'DeleteUser'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.username': 'freddy',
+        }
 
     def test_put_user_with_auth_but_no_perms(self):
         user = User(username='freddy')
@@ -142,6 +182,14 @@ class TestCase(TestCase):
             }
         }
 
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'UpdateUser'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 403,
+            'errors': {'authorization': 'NotPermitted'},
+        }
+
     def test_put_user_with_auth(self):
         user = User(username='freddy')
         db.session.add(user)
@@ -166,6 +214,14 @@ class TestCase(TestCase):
             'groups': [],
             'id': 2,
             'username': 'freddy'
+        }
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'UpdateUser'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.username': 'freddy',
         }
 
     def test_get_user_with_auth_but_no_perms(self):
@@ -197,6 +253,14 @@ class TestCase(TestCase):
             }
         }
 
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'GetUser'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 403,
+            'errors': {'authorization': 'NotPermitted'},
+        }
+
     def test_get_user_with_auth(self):
         user = User(username='freddy')
         db.session.add(user)
@@ -217,6 +281,14 @@ class TestCase(TestCase):
             'groups': [],
             'id': 2,
             'username': 'freddy'
+        }
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'GetUser'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.username': 'freddy',
         }
 
     def test_get_user_with_auth_but_no_perms_404(self):
@@ -248,6 +320,14 @@ class TestCase(TestCase):
             }
         }
 
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'GetUser'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 403,
+            'errors': {'authorization': 'NotPermitted'},
+        }
+
     def test_get_user_with_auth_404(self):
         response = self.client.get(
             '/api/v1/users/9999999',
@@ -259,3 +339,10 @@ class TestCase(TestCase):
             content_type='application/json',
         )
         assert response.status_code == 404
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'GetUser'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 404,
+        }
