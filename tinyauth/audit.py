@@ -50,11 +50,8 @@ class AuditFormatter(logging.Formatter):
     def format(self, record):
         message = {}
 
-        if isinstance(record.msg, dict):
-            message = record.msg
-            record.message = None
-        else:
-            record.message = record.getMessage()
+        message['event'] = record.msg
+        message['created'] = self.formatTime(record, self.datefmt)
 
         for field, value in record.__dict__.items():
             if not value:
@@ -62,8 +59,6 @@ class AuditFormatter(logging.Formatter):
             if field in self._skip_fields:
                 continue
             message[field] = value
-
-        message['created'] = self.formatTime(record, self.datefmt)
 
         return json.dumps(message, default=self._json_default)
 

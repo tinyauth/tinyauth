@@ -46,6 +46,7 @@ class TestAudit(TestCase):
 
     def test_simple_event(self):
         assert self.event('event-tag') == {
+            'event': 'event-tag',
             'created': '1970-01-01T00:00:01',
             'levelname': 'INFO',
             'process': 8888,
@@ -63,6 +64,7 @@ class TestAudit(TestCase):
         }
 
         assert self.event('event-tag', extra) == {
+            'event': 'event-tag',
             'created': '1970-01-01T00:00:01',
             'levelname': 'INFO',
             'process': 8888,
