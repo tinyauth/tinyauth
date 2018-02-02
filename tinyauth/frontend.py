@@ -17,6 +17,7 @@ from flask import (
 )
 from flask_restful import reqparse
 
+from tinyauth.audit import audit_request
 from tinyauth.models import User
 
 frontend_blueprint = Blueprint('frontend', __name__, static_folder=None)
@@ -87,7 +88,8 @@ def login():
 
 
 @frontend_blueprint.route('/login', methods=["POST"])
-def login_post():
+@audit_request('FrontendLogin')
+def login_post(audit_ctx):
     if get_session():
         return redirect('/')
 
@@ -131,7 +133,8 @@ def static(path):
 
 
 @frontend_blueprint.route('/')
-def index():
+@audit_request('FrontendIndex')
+def index(audit_ctx):
     session = get_session()
     if not session:
         return redirect('/login')
