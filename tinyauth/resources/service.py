@@ -34,7 +34,7 @@ logger = logging.getLogger("tinyauth.audit")
 
 
 @service_blueprint.route('/api/v1/authorize-login', methods=['POST'])
-@audit_request('authorize-by-login')
+@audit_request('AuthorizeByLogin')
 def service_authorize_login(audit_ctx):
     internal_authorize('Authorize', f'arn:tinyauth:')
 
@@ -59,7 +59,7 @@ def service_authorize_login(audit_ctx):
 
 
 @service_blueprint.route('/api/v1/authorize', methods=['POST'])
-@audit_request('authorize-by-token')
+@audit_request('AuthorizeByToken')
 def service_authorize(audit_ctx):
     audit_ctx['request.legacy'] = True
 
@@ -86,7 +86,7 @@ def service_authorize(audit_ctx):
 
 
 @service_blueprint.route('/api/v1/services/<service>/get-token-for-login', methods=['POST'])
-@audit_request('get-token-for-login')
+@audit_request('GetTokenForLogin')
 def get_token_for_login(audit_ctx, service):
     internal_authorize('GetTokenForLogin', f'arn:tinyauth:')
 
@@ -141,7 +141,7 @@ def get_token_for_login(audit_ctx, service):
 
 
 @service_blueprint.route('/api/v1/services/<service>/authorize-by-token', methods=['POST'])
-@audit_request('authorize-by-token')
+@audit_request('AuthorizeByToken')
 def batch_service_authorize(audit_ctx, service):
     audit_ctx['request.service'] = service
     audit_ctx['response.authorized'] = False

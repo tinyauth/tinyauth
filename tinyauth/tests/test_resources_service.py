@@ -46,7 +46,7 @@ class TestCaseToken(base.TestCase):
         }
 
         args, kwargs = self.audit_log.call_args_list[0]
-        assert args[0] == 'authorize-by-token'
+        assert args[0] == 'AuthorizeByToken'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 401,
@@ -94,7 +94,7 @@ class TestCaseToken(base.TestCase):
         }
 
         args, kwargs = self.audit_log.call_args_list[0]
-        assert args[0] == 'authorize-by-token'
+        assert args[0] == 'AuthorizeByToken'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 400,
@@ -140,7 +140,7 @@ class TestCaseToken(base.TestCase):
         assert json.loads(response.get_data(as_text=True)) == {'Authorized': True, 'Identity': 'charles'}
 
         args, kwargs = self.audit_log.call_args_list[0]
-        assert args[0] == 'authorize-by-token'
+        assert args[0] == 'AuthorizeByToken'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
@@ -191,7 +191,7 @@ class TestCaseToken(base.TestCase):
         }
 
         args, kwargs = self.audit_log.call_args_list[0]
-        assert args[0] == 'authorize-by-token'
+        assert args[0] == 'AuthorizeByToken'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
@@ -233,7 +233,7 @@ class TestCaseBatchToken(base.TestCase):
         }
 
         args, kwargs = self.audit_log.call_args_list[0]
-        assert args[0] == 'authorize-by-token'
+        assert args[0] == 'AuthorizeByToken'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 401,
@@ -272,7 +272,7 @@ class TestCaseBatchToken(base.TestCase):
         }
 
         args, kwargs = self.audit_log.call_args_list[0]
-        assert args[0] == 'authorize-by-token'
+        assert args[0] == 'AuthorizeByToken'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 400,
@@ -325,7 +325,7 @@ class TestCaseBatchToken(base.TestCase):
         }
 
         args, kwargs = self.audit_log.call_args_list[0]
-        assert args[0] == 'authorize-by-token'
+        assert args[0] == 'AuthorizeByToken'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
@@ -382,7 +382,7 @@ class TestCaseBatchToken(base.TestCase):
         }
 
         args, kwargs = self.audit_log.call_args_list[0]
-        assert args[0] == 'authorize-by-token'
+        assert args[0] == 'AuthorizeByToken'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
@@ -436,7 +436,7 @@ class TestCaseLogin(base.TestCase):
         assert json.loads(response.get_data(as_text=True)) == {'Authorized': True, 'Identity': 'charles'}
 
         args, kwargs = self.audit_log.call_args_list[0]
-        assert args[0] == 'authorize-by-login'
+        assert args[0] == 'AuthorizeByLogin'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
@@ -486,7 +486,7 @@ class TestCaseLogin(base.TestCase):
         }
 
         args, kwargs = self.audit_log.call_args_list[0]
-        assert args[0] == 'authorize-by-login'
+        assert args[0] == 'AuthorizeByLogin'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
@@ -532,7 +532,7 @@ class TestCaseLoginToToken(base.TestCase):
         assert 'csrf' in payload
 
         args, kwargs = self.audit_log.call_args_list[0]
-        assert args[0] == 'get-token-for-login'
+        assert args[0] == 'GetTokenForLogin'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
@@ -573,7 +573,7 @@ class TestCaseLoginToToken(base.TestCase):
         }
 
         args, kwargs = self.audit_log.call_args_list[0]
-        assert args[0] == 'get-token-for-login'
+        assert args[0] == 'GetTokenForLogin'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 401,
