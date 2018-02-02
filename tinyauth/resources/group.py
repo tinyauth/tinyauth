@@ -3,6 +3,7 @@ from flask_restful import Resource, abort, fields, marshal, reqparse
 
 from tinyauth.api import Api
 from tinyauth.app import db
+from tinyauth.audit import audit_request, audit_request_cbv
 from tinyauth.authorize import internal_authorize
 from tinyauth.models import Group, User
 from tinyauth.simplerest import build_response_for_request
@@ -26,13 +27,15 @@ class GroupResource(Resource):
             abort(404, message=f'group {group_id} does not exist')
         return group
 
-    def get(self, group_id):
+    @audit_request_cbv('GetGroup')
+    def get(self, audit_ctx, group_id):
         internal_authorize('GetGroup', f'arn:tinyauth:groups/{group_id}')
 
         group = self._get_or_404(group_id)
         return jsonify(marshal(group, group_fields))
 
-    def put(self, group_id):
+    @audit_request_cbv('UpdateGroup')
+    def put(self, audit_ctx, group_id):
         internal_authorize('UpdateGroup', f'arn:tinyauth:groups/{group_id}')
 
         args = group_parser.parse_args()
@@ -45,7 +48,8 @@ class GroupResource(Resource):
 
         return jsonify(marshal(group, group_fields))
 
-    def delete(self, group_id):
+    @audit_request_cbv('DeleteGroup')
+    def delete(self, audit_ctx, group_id):
         internal_authorize('DeleteGroup', f'arn:tinyauth:groups/{group_id}')
 
         group = self._get_or_404(group_id)
@@ -56,12 +60,14 @@ class GroupResource(Resource):
 
 class GroupsResource(Resource):
 
-    def get(self):
+    @audit_request_cbv('ListGroups')
+    def get(self, audit_ctx):
         internal_authorize('ListGroups', f'arn:tinyauth:groups/')
 
         return build_response_for_request(Group, request, group_fields)
 
-    def post(self):
+    @audit_request_cbv('CreateGroup')
+    def post(self, audit_ctx):
         args = group_parser.parse_args()
 
         internal_authorize('CreateGroup', f'arn:tinyauth:groups/args["name"]')
@@ -77,7 +83,8 @@ class GroupsResource(Resource):
 
 
 @group_blueprint.route('/api/v1/groups/<group_id>/add-user', methods=['POST'])
-def add_user_to_group(group_id):
+@audit_request('AddUserToGroup')
+def add_user_to_group(audit_ctx, group_id):
     internal_authorize('AddUserToGroup', f'arn:tinyauth:')
 
     group = Group.query.filter(Group.id == group_id).first()
@@ -101,7 +108,8 @@ def add_user_to_group(group_id):
 
 
 @group_blueprint.route('/api/v1/groups/<group_id>/users/<user_id>', methods=['DELETE'])
-def remove_user_from_group(group_id, user_id):
+@audit_request('RemoveUserFromGroup')
+def remove_user_from_group(audit_ctx, group_id, user_id):
     internal_authorize('RemoveUserFromGroup', f'arn:tinyauth:')
 
     group = Group.query.filter(Group.id == group_id).first()

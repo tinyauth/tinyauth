@@ -101,6 +101,44 @@ def audit_request(event_name):
     return decorator
 
 
+def audit_request_cbv(event_name):
+    '''
+    Decorate a view function with automatic audit logging
+
+    All attempts to access the view will be recorded.
+
+    This will pass a dictionary `context` to the view - it should include extra
+    metadata that you want to include in the audit event
+    '''
+
+    def decorator(f):
+        @wraps(f)
+        def wrapper(self, *args, **kwargs):
+            context = {}
+
+            if 'X-Request-Id' in request.headers:
+                context['request-id'] = request.headers['X-Request-Id']
+
+            try:
+                response = f(self, context, *args, **kwargs)
+                context['http.status'] = getattr(response, 'code', 200)
+                return response
+            except (ValidationError, AuthorizationError, AuthenticationError) as e:
+                context['http.status'] = e.code
+                context['errors'] = e.description
+                raise e
+            except HTTPException as e:
+                context['http.status'] = e.code
+                raise e
+            finally:
+                logger.info(
+                    event_name,
+                    extra=context,
+                )
+        return wrapper
+    return decorator
+
+
 def format_headers_for_audit_log(headers):
     output = []
     for key, value in headers:
