@@ -9,7 +9,7 @@ from .base import TestCase
 
 class TestGroups(TestCase):
 
-    def test_get_groups_no_groups(self):
+    def test_list_groups_no_groups(self):
         response = self.client.get(
             '/api/v1/groups',
             headers={
@@ -84,7 +84,7 @@ class TestGroups(TestCase):
         db.session.commit()
 
         response = self.client.delete(
-            '/api/v1/groups/1',
+            '/api/v1/groups/freddy',
             headers={
                 'Authorization': 'Basic {}'.format(
                     base64.b64encode(b'AKIDEXAMPLE2:password').decode('utf-8')
@@ -114,7 +114,7 @@ class TestGroups(TestCase):
         db.session.commit()
 
         response = self.client.delete(
-            '/api/v1/groups/1',
+            '/api/v1/groups/devs',
             headers={
                 'Authorization': 'Basic {}'.format(
                     base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
@@ -140,7 +140,7 @@ class TestGroups(TestCase):
         db.session.commit()
 
         response = self.client.put(
-            '/api/v1/groups/1',
+            '/api/v1/groups/dev',
             data=json.dumps({
                 'name': 'devs',
             }),
@@ -173,7 +173,7 @@ class TestGroups(TestCase):
         db.session.commit()
 
         response = self.client.put(
-            '/api/v1/groups/1',
+            '/api/v1/groups/devs',
             data=json.dumps({
                 'name': 'devs',
             }),
@@ -201,7 +201,7 @@ class TestGroups(TestCase):
         db.session.commit()
 
         response = self.client.get(
-            '/api/v1/groups/1',
+            '/api/v1/groups/freddy',
             headers={
                 'Authorization': 'Basic {}'.format(
                     base64.b64encode(b'AKIDEXAMPLE2:password').decode('utf-8')
@@ -230,7 +230,7 @@ class TestGroups(TestCase):
         db.session.commit()
 
         response = self.client.get(
-            '/api/v1/groups/1',
+            '/api/v1/groups/devs',
             headers={
                 'Authorization': 'Basic {}'.format(
                     base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')

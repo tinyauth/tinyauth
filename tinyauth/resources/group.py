@@ -22,7 +22,7 @@ group_blueprint = Blueprint('group', __name__)
 class GroupResource(Resource):
 
     def _get_or_404(self, group_id):
-        group = Group.query.filter(Group.id == group_id).first()
+        group = Group.query.filter(Group.name == group_id).first()
         if not group:
             abort(404, message=f'group {group_id} does not exist')
         return group
@@ -91,7 +91,7 @@ class GroupsResource(Resource):
 def add_user_to_group(audit_ctx, group_id):
     internal_authorize('AddUserToGroup', f'arn:tinyauth:')
 
-    group = Group.query.filter(Group.id == group_id).first()
+    group = Group.query.filter(Group.name == group_id).first()
     if not group:
         abort(404, message=f'group {group_id} does not exist')
 
@@ -120,7 +120,7 @@ def add_user_to_group(audit_ctx, group_id):
 def remove_user_from_group(audit_ctx, group_id, user_id):
     internal_authorize('RemoveUserFromGroup', f'arn:tinyauth:')
 
-    group = Group.query.filter(Group.id == group_id).first()
+    group = Group.query.filter(Group.name == group_id).first()
     if not group:
         abort(404, message=f'group {group_id} does not exist')
 
