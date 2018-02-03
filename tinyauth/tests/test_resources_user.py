@@ -22,11 +22,11 @@ class TestCase(TestCase):
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == [{
             'groups': [],
-            'id': 1,
+            'id': 'charles',
             'username': 'charles',
         }, {
             'groups': [],
-            'id': 2,
+            'id': 'freddy',
             'username': 'freddy',
         }]
 
@@ -76,7 +76,7 @@ class TestCase(TestCase):
             content_type='application/json',
         )
         assert response.status_code == 200
-        assert json.loads(response.get_data(as_text=True)) == {'id': 3, 'username': 'mruser', 'groups': []}
+        assert json.loads(response.get_data(as_text=True)) == {'id': 'mruser', 'username': 'mruser', 'groups': []}
 
         args, kwargs = self.audit_log.call_args_list[0]
         assert args[0] == 'CreateUser'
@@ -100,7 +100,7 @@ class TestCase(TestCase):
         db.session.commit()
 
         response = self.client.delete(
-            '/api/v1/users/1',
+            '/api/v1/users/charles',
             headers={
                 'Authorization': 'Basic {}'.format(
                     base64.b64encode(b'AKIDEXAMPLE2:password').decode('utf-8')
@@ -130,7 +130,7 @@ class TestCase(TestCase):
         db.session.commit()
 
         response = self.client.delete(
-            '/api/v1/users/2',
+            '/api/v1/users/freddy',
             headers={
                 'Authorization': 'Basic {}'.format(
                     base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
@@ -163,7 +163,7 @@ class TestCase(TestCase):
         db.session.commit()
 
         response = self.client.put(
-            '/api/v1/users/1',
+            '/api/v1/users/charles',
             data=json.dumps({
                 'username': 'freddy',
                 'password': 'password',
@@ -197,7 +197,7 @@ class TestCase(TestCase):
         db.session.commit()
 
         response = self.client.put(
-            '/api/v1/users/2',
+            '/api/v1/users/freddy',
             data=json.dumps({
                 'username': 'freddy',
                 'password': 'password',
@@ -212,7 +212,7 @@ class TestCase(TestCase):
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {
             'groups': [],
-            'id': 2,
+            'id': 'freddy',
             'username': 'freddy'
         }
 
@@ -238,7 +238,7 @@ class TestCase(TestCase):
         db.session.commit()
 
         response = self.client.get(
-            '/api/v1/users/1',
+            '/api/v1/users/charles',
             headers={
                 'Authorization': 'Basic {}'.format(
                     base64.b64encode(b'AKIDEXAMPLE2:password').decode('utf-8')
@@ -268,7 +268,7 @@ class TestCase(TestCase):
         db.session.commit()
 
         response = self.client.get(
-            '/api/v1/users/2',
+            '/api/v1/users/freddy',
             headers={
                 'Authorization': 'Basic {}'.format(
                     base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
@@ -279,7 +279,7 @@ class TestCase(TestCase):
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {
             'groups': [],
-            'id': 2,
+            'id': 'freddy',
             'username': 'freddy'
         }
 
@@ -305,7 +305,7 @@ class TestCase(TestCase):
         db.session.commit()
 
         response = self.client.get(
-            '/api/v1/users/9999999',
+            '/api/v1/users/james',
             headers={
                 'Authorization': 'Basic {}'.format(
                     base64.b64encode(b'AKIDEXAMPLE2:password').decode('utf-8')
@@ -330,7 +330,7 @@ class TestCase(TestCase):
 
     def test_get_user_with_auth_404(self):
         response = self.client.get(
-            '/api/v1/users/9999999',
+            '/api/v1/users/james',
             headers={
                 'Authorization': 'Basic {}'.format(
                     base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')

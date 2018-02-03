@@ -69,10 +69,10 @@ class TestCaseIdentityJWT(base.TestCase):
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == [{
             'groups': [],
-            'id': 1,
+            'id': 'charles',
             'username': 'charles',
         }, {
             'groups': [],
-            'id': 2,
+            'id': 'freddy',
             'username': 'freddy',
         }]

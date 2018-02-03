@@ -30,32 +30,36 @@ user_policy_blueprint = Blueprint('user_policy', __name__)
 
 class UserPolicyResource(Resource):
 
-    def _get_or_404(self, user_id, policy_id):
-        policy = UserPolicy.query.filter(UserPolicy.user_id == user_id, UserPolicy.id == policy_id).first()
+    def _get_or_404(self, user, policy_id):
+        policy = UserPolicy.query.filter(UserPolicy.user == user, UserPolicy.id == policy_id).first()
         if not policy:
-            abort(404, message=f'Policy {policy_id} for user {user_id} does not exist')
+            abort(404, message=f'Policy {policy_id} for user {user} does not exist')
         return policy
 
     @audit_request_cbv('GetUserPolicy')
-    def get(self, audit_ctx, user_id, policy_id):
-        user = User.query.filter(User.id == user_id).first()
+    def get(self, audit_ctx, username, policy_id):
+        user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message=f'User doesn\'t exist')
 
         audit_ctx['request.username'] = user.username
 
-        internal_authorize('GetUserPolicy', f'arn:tinyauth:users/{user_id}')
+        internal_authorize('GetUserPolicy', f'arn:tinyauth:users/{username}')
 
-        policy = self._get_or_404(user_id, policy_id)
+        policy = self._get_or_404(user, policy_id)
         return jsonify(marshal(policy, user_policy_fields))
 
     @audit_request_cbv('UpdateUserPolicy')
-    def put(self, audit_ctx, user_id, policy_id):
-        internal_authorize('UpdateUserPolicy', f'arn:tinyauth:users/{user_id}')
+    def put(self, audit_ctx, username, policy_id):
+        user = User.query.filter(User.username == username).first()
+        if not user:
+            abort(404, message=f'User doesn\'t exist')
+
+        internal_authorize('UpdateUserPolicy', f'arn:tinyauth:users/{username}')
 
         args = user_policy_parser.parse_args()
 
-        policy = self._get_or_404(user_id, policy_id)
+        policy = self._get_or_404(user, policy_id)
         policy.name = args['name']
         policy.policy = json.loads(args['policy'])
         db.session.add(policy)
@@ -65,16 +69,16 @@ class UserPolicyResource(Resource):
         return jsonify(marshal(policy, user_policy_fields))
 
     @audit_request_cbv('DeleteUserPolicy')
-    def delete(self, audit_ctx, user_id, policy_id):
-        user = User.query.filter(User.id == user_id).first()
+    def delete(self, audit_ctx, username, policy_id):
+        user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message=f'User doesn\'t exist')
 
         audit_ctx['request.username'] = user.username
 
-        internal_authorize('DeleteUserPolicy', f'arn:tinyauth:users/{user_id}')
+        internal_authorize('DeleteUserPolicy', f'arn:tinyauth:users/{username}')
 
-        policy = self._get_or_404(user_id, policy_id)
+        policy = self._get_or_404(user, policy_id)
         db.session.delete(policy)
         db.session.commit()
 
@@ -84,8 +88,8 @@ class UserPolicyResource(Resource):
 class UserPoliciesResource(Resource):
 
     @audit_request_cbv('ListUserPolicies')
-    def get(self, audit_ctx, user_id):
-        user = User.query.filter(User.id == user_id).first()
+    def get(self, audit_ctx, username):
+        user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message=f'User doesn\'t exist')
 
@@ -97,12 +101,12 @@ class UserPoliciesResource(Resource):
             UserPolicy,
             request,
             user_policy_fields,
-            UserPolicy.query.filter(UserPolicy.user_id == user_id),
+            UserPolicy.query.filter(UserPolicy.user == user),
         )
 
     @audit_request_cbv('CreateUserPolicy')
-    def post(self, audit_ctx, user_id):
-        user = User.query.filter(User.id == user_id).first()
+    def post(self, audit_ctx, username):
+        user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message=f'User doesn\'t exist')
 
@@ -113,7 +117,7 @@ class UserPoliciesResource(Resource):
         internal_authorize('CreateUserPolicy', f'arn:tinyauth:users/args["name"]')
 
         policy = UserPolicy(
-            user_id=user_id,
+            user=user,
             name=args['name'],
             policy=json.loads(args['policy']),
         )
@@ -125,5 +129,5 @@ class UserPoliciesResource(Resource):
 
 
 user_policy_api = Api(user_policy_blueprint, prefix='/api/v1')
-user_policy_api.add_resource(UserPoliciesResource, '/users/<user_id>/policies')
-user_policy_api.add_resource(UserPolicyResource, '/users/<user_id>/policies/<policy_id>')
+user_policy_api.add_resource(UserPoliciesResource, '/users/<username>/policies')
+user_policy_api.add_resource(UserPolicyResource, '/users/<username>/policies/<policy_id>')

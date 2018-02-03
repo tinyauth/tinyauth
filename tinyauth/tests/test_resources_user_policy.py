@@ -6,7 +6,7 @@ from . import base
 class TestCase(base.TestCase):
 
     def test_list_user_policies(self):
-        response = self.req('get', '/api/v1/users/1/policies')
+        response = self.req('get', '/api/v1/users/charles/policies')
 
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == [{
@@ -31,7 +31,7 @@ class TestCase(base.TestCase):
         }
 
     def test_get_user_policy(self):
-        response = self.req('get', '/api/v1/users/1/policies/1')
+        response = self.req('get', '/api/v1/users/charles/policies/1')
 
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {
@@ -56,7 +56,7 @@ class TestCase(base.TestCase):
         }
 
     def test_create_user_policy(self):
-        response = self.req('post', '/api/v1/users/1/policies', body={
+        response = self.req('post', '/api/v1/users/charles/policies', body={
             'name': 'example1',
             'policy': json.dumps({'Statement': []})
         })
@@ -67,7 +67,7 @@ class TestCase(base.TestCase):
             'policy': json.dumps({'Statement': []}),
         }
 
-        response = self.req('get', '/api/v1/users/1/policies')
+        response = self.req('get', '/api/v1/users/charles/policies')
         assert len(json.loads(response.get_data(as_text=True))) == 2
 
         args, kwargs = self.audit_log.call_args_list[0]
@@ -79,21 +79,21 @@ class TestCase(base.TestCase):
         }
 
     def test_delete_user_policy(self):
-        response = self.req('post', '/api/v1/users/1/policies', body={
+        response = self.req('post', '/api/v1/users/charles/policies', body={
             'name': 'example1',
             'policy': json.dumps({'Statement': []})
         })
         assert response.status_code == 200
 
-        response = self.req('get', '/api/v1/users/1/policies')
+        response = self.req('get', '/api/v1/users/charles/policies')
         assert len(json.loads(response.get_data(as_text=True))) == 2
 
-        response = self.req('delete', '/api/v1/users/1/policies/2')
+        response = self.req('delete', '/api/v1/users/charles/policies/2')
 
         assert response.status_code == 201
         assert json.loads(response.get_data(as_text=True)) == {}
 
-        response = self.req('get', '/api/v1/users/1/policies')
+        response = self.req('get', '/api/v1/users/charles/policies')
         assert len(json.loads(response.get_data(as_text=True))) == 1
 
         args, kwargs = self.audit_log.call_args_list[2]

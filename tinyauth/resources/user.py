@@ -9,7 +9,7 @@ from tinyauth.models import User
 from tinyauth.simplerest import build_response_for_request
 
 user_fields = {
-    'id': fields.Integer,
+    'id': fields.String(attribute='username'),
     'username': fields.String,
     'groups': fields.List(fields.Nested({
         'id': fields.String,
@@ -26,27 +26,27 @@ user_blueprint = Blueprint('user', __name__)
 
 class UserResource(Resource):
 
-    def _get_or_404(self, user_id):
-        user = User.query.filter(User.id == user_id).first()
+    def _get_or_404(self, username):
+        user = User.query.filter(User.username == username).first()
         if not user:
-            abort(404, message=f'user {user_id} does not exist')
+            abort(404, message=f'user {username} does not exist')
         return user
 
     @audit_request_cbv('GetUser')
-    def get(self, audit_ctx, user_id):
-        internal_authorize('GetUser', f'arn:tinyauth:users/{user_id}')
+    def get(self, audit_ctx, username):
+        internal_authorize('GetUser', f'arn:tinyauth:users/{username}')
 
-        user = self._get_or_404(user_id)
+        user = self._get_or_404(username)
         audit_ctx['request.username'] = user.username
         return jsonify(marshal(user, user_fields))
 
     @audit_request_cbv('UpdateUser')
-    def put(self, audit_ctx, user_id):
-        internal_authorize('UpdateUser', f'arn:tinyauth:users/{user_id}')
+    def put(self, audit_ctx, username):
+        internal_authorize('UpdateUser', f'arn:tinyauth:users/{username}')
 
         args = user_parser.parse_args()
 
-        user = self._get_or_404(user_id)
+        user = self._get_or_404(username)
         audit_ctx['request.username'] = user.username
 
         if 'username' in args:
@@ -60,10 +60,10 @@ class UserResource(Resource):
         return jsonify(marshal(user, user_fields))
 
     @audit_request_cbv('DeleteUser')
-    def delete(self, audit_ctx, user_id):
-        internal_authorize('DeleteUser', f'arn:tinyauth:users/{user_id}')
+    def delete(self, audit_ctx, username):
+        internal_authorize('DeleteUser', f'arn:tinyauth:users/{username}')
 
-        user = self._get_or_404(user_id)
+        user = self._get_or_404(username)
         audit_ctx['request.username'] = user.username
         db.session.delete(user)
 
@@ -100,4 +100,4 @@ class UsersResource(Resource):
 
 user_api = Api(user_blueprint, prefix='/api/v1')
 user_api.add_resource(UsersResource, '/users')
-user_api.add_resource(UserResource, '/users/<user_id>')
+user_api.add_resource(UserResource, '/users/<username>')
