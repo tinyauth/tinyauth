@@ -15,12 +15,12 @@ SECRET_ACCESS_KEY_LETTERS = string.ascii_uppercase + string.ascii_lowercase + st
 
 
 access_key_fields = {
-    'id': fields.Integer,
+    'id': fields.String(attribute='access_key_id'),
     'access_key_id': fields.String,
 }
 
 access_key_fields__initial = {
-    'id': fields.Integer,
+    'id': fields.String(attribute='access_key_id'),
     'access_key_id': fields.String,
     'secret_access_key': fields.String,
 }
@@ -32,7 +32,7 @@ access_key_blueprint = Blueprint('access_key', __name__)
 class AccessKeyResource(Resource):
 
     def _get_or_404(self, user, key_id):
-        access_key = AccessKey.query.filter(AccessKey.user == user, AccessKey.id == key_id).first()
+        access_key = AccessKey.query.filter(AccessKey.user == user, AccessKey.access_key_id == key_id).first()
         if not access_key:
             abort(404, message=f'Access key {key_id} for user {user} does not exist')
         return access_key

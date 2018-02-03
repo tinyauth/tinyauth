@@ -10,7 +10,7 @@ class TestCase(base.TestCase):
 
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == [{
-            'id': 1,
+            'id': 'AKIDEXAMPLE',
             'access_key_id': 'AKIDEXAMPLE',
         }]
 
@@ -23,11 +23,11 @@ class TestCase(base.TestCase):
         }
 
     def test_get_access_key(self):
-        response = self.req('get', '/api/v1/users/charles/keys/1')
+        response = self.req('get', '/api/v1/users/charles/keys/AKIDEXAMPLE')
 
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {
-            'id': 1,
+            'id': 'AKIDEXAMPLE',
             'access_key_id': 'AKIDEXAMPLE',
         }
 
@@ -61,9 +61,11 @@ class TestCase(base.TestCase):
         response = self.req('post', '/api/v1/users/charles/keys')
 
         response = self.req('get', '/api/v1/users/charles/keys')
-        assert len(json.loads(response.get_data(as_text=True))) == 2
+        payload = json.loads(response.get_data(as_text=True))
+        assert len(payload) == 2
 
-        response = self.req('delete', '/api/v1/users/charles/keys/3')
+        access_key_id = payload[-1]['access_key_id']
+        response = self.req('delete', f'/api/v1/users/charles/keys/{access_key_id}')
 
         assert response.status_code == 201
         assert json.loads(response.get_data(as_text=True)) == {}
