@@ -28,6 +28,14 @@ class TestCase(base.TestCase):
             'policy': json.dumps({}),
         }]
 
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'ListGroupPolicies'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.group': 'test-group',
+        }
+
     def test_get_group_policy(self):
         response = self.req('get', '/api/v1/groups/1/policies/1')
 
@@ -36,6 +44,14 @@ class TestCase(base.TestCase):
             'id': 1,
             'name': 'test-policy',
             'policy': json.dumps({}),
+        }
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'GetGroupPolicy'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.group': 'test-group',
         }
 
     def test_create_group_policy(self):
@@ -52,6 +68,14 @@ class TestCase(base.TestCase):
 
         response = self.req('get', '/api/v1/groups/1/policies')
         assert len(json.loads(response.get_data(as_text=True))) == 2
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'CreateGroupPolicy'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.group': 'test-group',
+        }
 
     def test_delete_group_policy(self):
         response = self.req('post', '/api/v1/groups/1/policies', body={
@@ -70,3 +94,11 @@ class TestCase(base.TestCase):
 
         response = self.req('get', '/api/v1/groups/1/policies')
         assert len(json.loads(response.get_data(as_text=True))) == 1
+
+        args, kwargs = self.audit_log.call_args_list[2]
+        assert args[0] == 'DeleteGroupPolicy'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 201,
+            'request.group': 'test-group',
+        }

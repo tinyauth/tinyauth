@@ -6,7 +6,7 @@ from flask_restful import Api, Resource, abort, fields, marshal, reqparse
 from tinyauth.app import db
 from tinyauth.audit import audit_request_cbv
 from tinyauth.authorize import internal_authorize
-from tinyauth.models import GroupPolicy
+from tinyauth.models import Group, GroupPolicy
 from tinyauth.simplerest import build_response_for_request
 
 
@@ -41,6 +41,7 @@ class GroupPolicyResource(Resource):
         internal_authorize('GetGroupPolicy', f'arn:tinyauth:groups/{group_id}')
 
         policy = self._get_or_404(group_id, policy_id)
+        audit_ctx['request.group'] = policy.group.name
         return jsonify(marshal(policy, group_policy_fields))
 
     @audit_request_cbv('UpdateGroupPolicy')
@@ -50,6 +51,7 @@ class GroupPolicyResource(Resource):
         args = group_policy_parser.parse_args()
 
         policy = self._get_or_404(group_id, policy_id)
+        audit_ctx['request.group'] = policy.group.name
         policy.name = args['name']
         policy.policy = json.loads(args['policy'])
         db.session.add(policy)
@@ -63,6 +65,7 @@ class GroupPolicyResource(Resource):
         internal_authorize('DeleteGroupPolicy', f'arn:tinyauth:groups/{group_id}')
 
         policy = self._get_or_404(group_id, policy_id)
+        audit_ctx['request.group'] = policy.group.name
         db.session.delete(policy)
         db.session.commit()
 
@@ -73,6 +76,12 @@ class GroupPoliciesResource(Resource):
 
     @audit_request_cbv('ListGroupPolicies')
     def get(self, audit_ctx, group_id):
+        group = Group.query.filter(Group.id == group_id).first()
+        if not group:
+            abort(404, message=f'Group {group_id} does not exist')
+
+        audit_ctx['request.group'] = group.name
+
         internal_authorize('ListGroupPolicies', f'arn:tinyauth:groups/')
 
         return build_response_for_request(
@@ -84,6 +93,12 @@ class GroupPoliciesResource(Resource):
 
     @audit_request_cbv('CreateGroupPolicy')
     def post(self, audit_ctx, group_id):
+        group = Group.query.filter(Group.id == group_id).first()
+        if not group:
+            abort(404, message=f'Group {group_id} does not exist')
+
+        audit_ctx['request.group'] = group.name
+
         args = group_policy_parser.parse_args()
 
         internal_authorize('CreateGroupPolicy', f'arn:tinyauth:groups/args["name"]')
