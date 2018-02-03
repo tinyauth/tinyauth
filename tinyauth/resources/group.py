@@ -93,16 +93,18 @@ def add_user_to_group(audit_ctx, group_id):
 
     group = Group.query.filter(Group.name == group_id).first()
     if not group:
+        print("D")
         abort(404, message=f'group {group_id} does not exist')
 
     audit_ctx['request.group'] = group.name
 
     user_parser = reqparse.RequestParser()
-    user_parser.add_argument('user', type=int, location='json', required=True)
+    user_parser.add_argument('user', type=str, location='json', required=True)
     args = user_parser.parse_args()
 
-    user = User.query.filter(User.id == args['user']).first()
+    user = User.query.filter(User.username == args['user']).first()
     if not user:
+        print("C")
         abort(404, message=f'user {args["user"]} does not exist')
 
     audit_ctx['request.username'] = user.username
@@ -115,26 +117,24 @@ def add_user_to_group(audit_ctx, group_id):
     return jsonify({})
 
 
-@group_blueprint.route('/api/v1/groups/<group_id>/users/<user_id>', methods=['DELETE'])
+@group_blueprint.route('/api/v1/groups/<group_id>/users/<username>', methods=['DELETE'])
 @audit_request('RemoveUserFromGroup')
-def remove_user_from_group(audit_ctx, group_id, user_id):
+def remove_user_from_group(audit_ctx, group_id, username):
     audit_ctx['request.group'] = group_id
+    audit_ctx['request.username'] = username
     internal_authorize('RemoveUserFromGroup', format_arn('groups', group_id))
 
     group = Group.query.filter(Group.name == group_id).first()
     if not group:
         abort(404, message=f'group {group_id} does not exist')
 
-    user = User.query.filter(User.id == user_id).first()
+    user = User.query.join(Group.users).filter(User.username == username, Group.id == group.id).first()
     if not user:
-        abort(404, message=f'user {user_id} does not exist')
+        abort(404, message=f'user {username} does not exist')
 
-    audit_ctx['request.username'] = user.username
-
-    if user in group.users:
-        group.users.remove(user)
-        db.session.add(group)
-        db.session.commit()
+    group.users.remove(user)
+    db.session.add(group)
+    db.session.commit()
 
     return make_response(jsonify({}), 201, [])
 

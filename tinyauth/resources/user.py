@@ -12,7 +12,7 @@ user_fields = {
     'id': fields.String(attribute='username'),
     'username': fields.String,
     'groups': fields.List(fields.Nested({
-        'id': fields.String,
+        'id': fields.String(attribute='name'),
         'name': fields.String,
     })),
 }

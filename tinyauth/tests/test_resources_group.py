@@ -248,3 +248,65 @@ class TestGroups(TestCase):
             'http.status': 200,
             'request.group': 'devs',
         }
+
+
+class TestGroupMembership(TestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        group = Group(name='test-group')
+        group.users.append(self.user2)
+        db.session.add(group)
+        db.session.commit()
+
+    def test_remove_user_from_group(self):
+        response = self.client.delete(
+            '/api/v1/groups/test-group/users/freddy',
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                ),
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 201
+        assert response.get_data(as_text=True) == '{}\n'
+        assert b''.join(response.response) == b'{}\n'
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'RemoveUserFromGroup'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 201,
+            'request.group': 'test-group',
+            'request.username': 'freddy',
+        }
+
+    def test_add_user_to_group(self):
+        response = self.client.post(
+            '/api/v1/groups/test-group/add-user',
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                ),
+            },
+            content_type='application/json',
+            data=json.dumps({
+                'user': 'charles',
+            }),
+        )
+
+        assert response.status_code == 200
+        assert response.get_data(as_text=True) == '{}\n'
+        assert b''.join(response.response) == b'{}\n'
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'AddUserToGroup'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.group': 'test-group',
+            'request.username': 'charles',
+        }
