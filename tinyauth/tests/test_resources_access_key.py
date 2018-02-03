@@ -14,6 +14,14 @@ class TestCase(base.TestCase):
             'access_key_id': 'AKIDEXAMPLE',
         }]
 
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'ListAccessKeys'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.username': 'charles',
+        }
+
     def test_get_access_key(self):
         response = self.req('get', '/api/v1/users/1/keys/1')
 
@@ -21,6 +29,14 @@ class TestCase(base.TestCase):
         assert json.loads(response.get_data(as_text=True)) == {
             'id': 1,
             'access_key_id': 'AKIDEXAMPLE',
+        }
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'GetAccessKey'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.username': 'charles',
         }
 
     def test_create_access_key(self):
@@ -32,6 +48,14 @@ class TestCase(base.TestCase):
 
         response = self.req('get', '/api/v1/users/1/keys')
         assert len(json.loads(response.get_data(as_text=True))) == 2
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'CreateAccessKey'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.username': 'charles',
+        }
 
     def test_delete_access_key(self):
         response = self.req('post', '/api/v1/users/1/keys')
@@ -46,3 +70,11 @@ class TestCase(base.TestCase):
 
         response = self.req('get', '/api/v1/users/1/keys')
         assert len(json.loads(response.get_data(as_text=True))) == 1
+
+        args, kwargs = self.audit_log.call_args_list[2]
+        assert args[0] == 'DeleteAccessKey'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 201,
+            'request.username': 'charles',
+        }
