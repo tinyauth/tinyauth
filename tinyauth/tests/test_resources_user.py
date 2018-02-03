@@ -121,6 +121,7 @@ class TestCase(TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 403,
             'errors': {'authorization': 'NotPermitted'},
+            'request.username': 'charles',
         }
 
     def test_delete_user_with_auth(self):
@@ -188,6 +189,7 @@ class TestCase(TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 403,
             'errors': {'authorization': 'NotPermitted'},
+            'request.username': 'charles',
         }
 
     def test_put_user_with_auth(self):
@@ -259,6 +261,7 @@ class TestCase(TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 403,
             'errors': {'authorization': 'NotPermitted'},
+            'request.username': 'charles',
         }
 
     def test_get_user_with_auth(self):
@@ -326,6 +329,7 @@ class TestCase(TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 403,
             'errors': {'authorization': 'NotPermitted'},
+            'request.username': 'james',
         }
 
     def test_get_user_with_auth_404(self):
@@ -345,4 +349,5 @@ class TestCase(TestCase):
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 404,
+            'request.username': 'james',
         }

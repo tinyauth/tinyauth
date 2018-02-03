@@ -34,20 +34,20 @@ class UserResource(Resource):
 
     @audit_request_cbv('GetUser')
     def get(self, audit_ctx, username):
+        audit_ctx['request.username'] = username
         internal_authorize('GetUser', f'arn:tinyauth:users/{username}')
 
         user = self._get_or_404(username)
-        audit_ctx['request.username'] = user.username
         return jsonify(marshal(user, user_fields))
 
     @audit_request_cbv('UpdateUser')
     def put(self, audit_ctx, username):
+        audit_ctx['request.username'] = username
         internal_authorize('UpdateUser', f'arn:tinyauth:users/{username}')
 
         args = user_parser.parse_args()
 
         user = self._get_or_404(username)
-        audit_ctx['request.username'] = user.username
 
         if 'username' in args:
             user.username = args['username']
@@ -61,10 +61,10 @@ class UserResource(Resource):
 
     @audit_request_cbv('DeleteUser')
     def delete(self, audit_ctx, username):
+        audit_ctx['request.username'] = username
         internal_authorize('DeleteUser', f'arn:tinyauth:users/{username}')
 
         user = self._get_or_404(username)
-        audit_ctx['request.username'] = user.username
         db.session.delete(user)
 
         return make_response(jsonify({}), 201, [])
