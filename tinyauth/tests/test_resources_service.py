@@ -536,6 +536,7 @@ class TestCaseLoginToToken(base.TestCase):
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
+            'request.service': 'myservice',
             'request.username': 'charles',
             'request.csrf-strategy': 'header-token',
         }
@@ -577,6 +578,7 @@ class TestCaseLoginToToken(base.TestCase):
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 401,
+            'request.service': 'myservice',
             'errors': {'authentication': 'Invalid credentials'},
             'request.username': 'charles',
             'request.csrf-strategy': 'header-token',

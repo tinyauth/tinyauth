@@ -88,6 +88,7 @@ def service_authorize(audit_ctx):
 @service_blueprint.route('/api/v1/services/<service>/get-token-for-login', methods=['POST'])
 @audit_request('GetTokenForLogin')
 def get_token_for_login(audit_ctx, service):
+    audit_ctx['request.service'] = service
     internal_authorize('GetTokenForLogin', f'arn:tinyauth:')
 
     user_parser = RequestParser()
