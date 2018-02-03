@@ -1,6 +1,6 @@
 import datetime
 
-from flask import jsonify, request
+from flask import current_app, jsonify, request
 from werkzeug.http import parse_authorization_header
 
 from .exceptions import AuthenticationError, AuthorizationError
@@ -8,6 +8,25 @@ from .identity import identify
 from .identity.exceptions import IdentityError
 from .models import User
 from .policy import allow
+
+
+def get_arn_base():
+    return ':'.join((
+        'arn',
+        current_app.config.get('TINYAUTH_PARTITION', 'tinyauth'),
+        current_app.config.get('TINYAUTH_SERVICE', 'tinyauth'),
+        # Region is blank
+        '',
+        # Reserved for future use (tenant id)
+        ''
+    )) + ':'
+
+
+def format_arn(resource_class, resource=''):
+    return ''.join((
+        get_arn_base(),
+        '/'.join((resource_class, resource))
+))
 
 
 def _authorize_user(user, action, resource, headers, context):

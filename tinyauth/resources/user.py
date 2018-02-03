@@ -4,7 +4,7 @@ from flask_restful import Resource, abort, fields, marshal, reqparse
 from tinyauth.api import Api
 from tinyauth.app import db
 from tinyauth.audit import audit_request_cbv
-from tinyauth.authorize import internal_authorize
+from tinyauth.authorize import format_arn, internal_authorize
 from tinyauth.models import User
 from tinyauth.simplerest import build_response_for_request
 
@@ -35,7 +35,7 @@ class UserResource(Resource):
     @audit_request_cbv('GetUser')
     def get(self, audit_ctx, username):
         audit_ctx['request.username'] = username
-        internal_authorize('GetUser', f'arn:tinyauth:users/{username}')
+        internal_authorize('GetUser', format_arn('users', username))
 
         user = self._get_or_404(username)
         return jsonify(marshal(user, user_fields))
@@ -43,7 +43,7 @@ class UserResource(Resource):
     @audit_request_cbv('UpdateUser')
     def put(self, audit_ctx, username):
         audit_ctx['request.username'] = username
-        internal_authorize('UpdateUser', f'arn:tinyauth:users/{username}')
+        internal_authorize('UpdateUser', format_arn('users', username))
 
         args = user_parser.parse_args()
 
@@ -62,7 +62,7 @@ class UserResource(Resource):
     @audit_request_cbv('DeleteUser')
     def delete(self, audit_ctx, username):
         audit_ctx['request.username'] = username
-        internal_authorize('DeleteUser', f'arn:tinyauth:users/{username}')
+        internal_authorize('DeleteUser', format_arn('users', username))
 
         user = self._get_or_404(username)
         db.session.delete(user)
@@ -74,7 +74,7 @@ class UsersResource(Resource):
 
     @audit_request_cbv('ListUsers')
     def get(self, audit_ctx):
-        internal_authorize('ListUsers', f'arn:tinyauth:users/')
+        internal_authorize('ListUsers', format_arn('users'))
 
         return build_response_for_request(User, request, user_fields)
 
@@ -84,7 +84,7 @@ class UsersResource(Resource):
 
         audit_ctx['request.username'] = args['username']
 
-        internal_authorize('CreateUser', f'arn:tinyauth:users/args["username"]')
+        internal_authorize('CreateUser', format_arn('users', args['username']))
 
         user = User(
             username=args['username'],

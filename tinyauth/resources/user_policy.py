@@ -5,7 +5,7 @@ from flask_restful import Api, Resource, abort, fields, marshal, reqparse
 
 from tinyauth.app import db
 from tinyauth.audit import audit_request_cbv
-from tinyauth.authorize import internal_authorize
+from tinyauth.authorize import format_arn, internal_authorize
 from tinyauth.models import User, UserPolicy
 from tinyauth.simplerest import build_response_for_request
 
@@ -38,24 +38,24 @@ class UserPolicyResource(Resource):
 
     @audit_request_cbv('GetUserPolicy')
     def get(self, audit_ctx, username, policy_name):
+        audit_ctx['request.username'] = username
+        internal_authorize('GetUserPolicy', format_arn('users', username))
+
         user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message=f'User doesn\'t exist')
-
-        audit_ctx['request.username'] = user.username
-
-        internal_authorize('GetUserPolicy', f'arn:tinyauth:users/{username}')
 
         policy = self._get_or_404(user, policy_name)
         return jsonify(marshal(policy, user_policy_fields))
 
     @audit_request_cbv('UpdateUserPolicy')
     def put(self, audit_ctx, username, policy_name):
+        audit_ctx['request.username'] = username
+        internal_authorize('UpdateUserPolicy', format_arn('users', username))
+
         user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message=f'User doesn\'t exist')
-
-        internal_authorize('UpdateUserPolicy', f'arn:tinyauth:users/{username}')
 
         args = user_policy_parser.parse_args()
 
@@ -70,13 +70,12 @@ class UserPolicyResource(Resource):
 
     @audit_request_cbv('DeleteUserPolicy')
     def delete(self, audit_ctx, username, policy_name):
+        audit_ctx['request.username'] = username
+        internal_authorize('DeleteUserPolicy', format_arn('users', username))
+
         user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message=f'User doesn\'t exist')
-
-        audit_ctx['request.username'] = user.username
-
-        internal_authorize('DeleteUserPolicy', f'arn:tinyauth:users/{username}')
 
         policy = self._get_or_404(user, policy_name)
         db.session.delete(policy)
@@ -89,13 +88,12 @@ class UserPoliciesResource(Resource):
 
     @audit_request_cbv('ListUserPolicies')
     def get(self, audit_ctx, username):
+        audit_ctx['request.username'] = username
+        internal_authorize('ListUserPolicies', format_arn('users', username))
+
         user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message=f'User doesn\'t exist')
-
-        audit_ctx['request.username'] = user.username
-
-        internal_authorize('ListUserPolicies', f'arn:tinyauth:users/')
 
         return build_response_for_request(
             UserPolicy,
@@ -106,15 +104,14 @@ class UserPoliciesResource(Resource):
 
     @audit_request_cbv('CreateUserPolicy')
     def post(self, audit_ctx, username):
+        audit_ctx['request.username'] = username
+        internal_authorize('CreateUserPolicy', format_arn('users', username))
+
         user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message=f'User doesn\'t exist')
 
-        audit_ctx['request.username'] = user.username
-
         args = user_policy_parser.parse_args()
-
-        internal_authorize('CreateUserPolicy', f'arn:tinyauth:users/args["name"]')
 
         policy = UserPolicy(
             user=user,
