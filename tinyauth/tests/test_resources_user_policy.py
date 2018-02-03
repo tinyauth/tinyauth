@@ -10,7 +10,7 @@ class TestCase(base.TestCase):
 
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == [{
-            'id': 1,
+            'id': 'tinyauth',
             'name': 'tinyauth',
             'policy': json.dumps({
                 'Version': '2012-10-17',
@@ -31,11 +31,11 @@ class TestCase(base.TestCase):
         }
 
     def test_get_user_policy(self):
-        response = self.req('get', '/api/v1/users/charles/policies/1')
+        response = self.req('get', '/api/v1/users/charles/policies/tinyauth')
 
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {
-            'id': 1,
+            'id': 'tinyauth',
             'name': 'tinyauth',
             'policy': json.dumps({
                 'Version': '2012-10-17',
@@ -62,7 +62,7 @@ class TestCase(base.TestCase):
         })
 
         assert json.loads(response.get_data(as_text=True)) == {
-            'id': 2,
+            'id': 'example1',
             'name': 'example1',
             'policy': json.dumps({'Statement': []}),
         }
@@ -88,7 +88,7 @@ class TestCase(base.TestCase):
         response = self.req('get', '/api/v1/users/charles/policies')
         assert len(json.loads(response.get_data(as_text=True))) == 2
 
-        response = self.req('delete', '/api/v1/users/charles/policies/2')
+        response = self.req('delete', '/api/v1/users/charles/policies/example1')
 
         assert response.status_code == 201
         assert json.loads(response.get_data(as_text=True)) == {}

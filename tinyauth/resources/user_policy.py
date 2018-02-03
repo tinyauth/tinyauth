@@ -16,7 +16,7 @@ class Json(fields.Raw):
 
 
 user_policy_fields = {
-    'id': fields.Integer,
+    'id': fields.String(attribute='name'),
     'name': fields.String,
     'policy': Json,
 }
@@ -30,14 +30,14 @@ user_policy_blueprint = Blueprint('user_policy', __name__)
 
 class UserPolicyResource(Resource):
 
-    def _get_or_404(self, user, policy_id):
-        policy = UserPolicy.query.filter(UserPolicy.user == user, UserPolicy.id == policy_id).first()
+    def _get_or_404(self, user, policy_name):
+        policy = UserPolicy.query.filter(UserPolicy.user == user, UserPolicy.name == policy_name).first()
         if not policy:
-            abort(404, message=f'Policy {policy_id} for user {user} does not exist')
+            abort(404, message=f'Policy {policy_name} for user {user} does not exist')
         return policy
 
     @audit_request_cbv('GetUserPolicy')
-    def get(self, audit_ctx, username, policy_id):
+    def get(self, audit_ctx, username, policy_name):
         user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message=f'User doesn\'t exist')
@@ -46,11 +46,11 @@ class UserPolicyResource(Resource):
 
         internal_authorize('GetUserPolicy', f'arn:tinyauth:users/{username}')
 
-        policy = self._get_or_404(user, policy_id)
+        policy = self._get_or_404(user, policy_name)
         return jsonify(marshal(policy, user_policy_fields))
 
     @audit_request_cbv('UpdateUserPolicy')
-    def put(self, audit_ctx, username, policy_id):
+    def put(self, audit_ctx, username, policy_name):
         user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message=f'User doesn\'t exist')
@@ -59,7 +59,7 @@ class UserPolicyResource(Resource):
 
         args = user_policy_parser.parse_args()
 
-        policy = self._get_or_404(user, policy_id)
+        policy = self._get_or_404(user, policy_name)
         policy.name = args['name']
         policy.policy = json.loads(args['policy'])
         db.session.add(policy)
@@ -69,7 +69,7 @@ class UserPolicyResource(Resource):
         return jsonify(marshal(policy, user_policy_fields))
 
     @audit_request_cbv('DeleteUserPolicy')
-    def delete(self, audit_ctx, username, policy_id):
+    def delete(self, audit_ctx, username, policy_name):
         user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message=f'User doesn\'t exist')
@@ -78,7 +78,7 @@ class UserPolicyResource(Resource):
 
         internal_authorize('DeleteUserPolicy', f'arn:tinyauth:users/{username}')
 
-        policy = self._get_or_404(user, policy_id)
+        policy = self._get_or_404(user, policy_name)
         db.session.delete(policy)
         db.session.commit()
 
@@ -130,4 +130,4 @@ class UserPoliciesResource(Resource):
 
 user_policy_api = Api(user_policy_blueprint, prefix='/api/v1')
 user_policy_api.add_resource(UserPoliciesResource, '/users/<username>/policies')
-user_policy_api.add_resource(UserPolicyResource, '/users/<username>/policies/<policy_id>')
+user_policy_api.add_resource(UserPolicyResource, '/users/<username>/policies/<policy_name>')
