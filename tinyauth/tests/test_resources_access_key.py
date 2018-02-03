@@ -6,7 +6,7 @@ from . import base
 class TestCase(base.TestCase):
 
     def test_list_access_keys(self):
-        response = self.req('get', '/api/v1/users/1/keys')
+        response = self.req('get', '/api/v1/users/charles/keys')
 
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == [{
@@ -23,7 +23,7 @@ class TestCase(base.TestCase):
         }
 
     def test_get_access_key(self):
-        response = self.req('get', '/api/v1/users/1/keys/1')
+        response = self.req('get', '/api/v1/users/charles/keys/1')
 
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {
@@ -40,13 +40,13 @@ class TestCase(base.TestCase):
         }
 
     def test_create_access_key(self):
-        response = self.req('post', '/api/v1/users/1/keys')
+        response = self.req('post', '/api/v1/users/charles/keys')
         d = json.loads(response.get_data(as_text=True))
         assert len(d['access_key_id']) == 20
         assert d['access_key_id'] == d['access_key_id'].upper()
         assert len(d['secret_access_key']) == 40
 
-        response = self.req('get', '/api/v1/users/1/keys')
+        response = self.req('get', '/api/v1/users/charles/keys')
         assert len(json.loads(response.get_data(as_text=True))) == 2
 
         args, kwargs = self.audit_log.call_args_list[0]
@@ -58,17 +58,17 @@ class TestCase(base.TestCase):
         }
 
     def test_delete_access_key(self):
-        response = self.req('post', '/api/v1/users/1/keys')
+        response = self.req('post', '/api/v1/users/charles/keys')
 
-        response = self.req('get', '/api/v1/users/1/keys')
+        response = self.req('get', '/api/v1/users/charles/keys')
         assert len(json.loads(response.get_data(as_text=True))) == 2
 
-        response = self.req('delete', '/api/v1/users/1/keys/3')
+        response = self.req('delete', '/api/v1/users/charles/keys/3')
 
         assert response.status_code == 201
         assert json.loads(response.get_data(as_text=True)) == {}
 
-        response = self.req('get', '/api/v1/users/1/keys')
+        response = self.req('get', '/api/v1/users/charles/keys')
         assert len(json.loads(response.get_data(as_text=True))) == 1
 
         args, kwargs = self.audit_log.call_args_list[2]

@@ -31,25 +31,33 @@ access_key_blueprint = Blueprint('access_key', __name__)
 
 class AccessKeyResource(Resource):
 
-    def _get_or_404(self, user_id, key_id):
-        access_key = AccessKey.query.filter(AccessKey.user_id == user_id, AccessKey.id == key_id).first()
+    def _get_or_404(self, user, key_id):
+        access_key = AccessKey.query.filter(AccessKey.user == user, AccessKey.id == key_id).first()
         if not access_key:
-            abort(404, message=f'Access key {key_id} for user {user_id} does not exist')
+            abort(404, message=f'Access key {key_id} for user {user} does not exist')
         return access_key
 
     @audit_request_cbv('GetAccessKey')
-    def get(self, audit_ctx, user_id, key_id):
-        internal_authorize('GetAccessKey', f'arn:tinyauth:users/{user_id}')
+    def get(self, audit_ctx, username, key_id):
+        internal_authorize('GetAccessKey', f'arn:tinyauth:users/{username}')
 
-        access_key = self._get_or_404(user_id, key_id)
+        user = User.query.filter(User.username == username).first()
+        if not user:
+            abort(404, message=f'User doesn\'t exist')
+
+        access_key = self._get_or_404(user, key_id)
         audit_ctx['request.username'] = access_key.user.username
         return jsonify(marshal(access_key, access_key_fields))
 
     @audit_request_cbv('DeleteAccessKey')
-    def delete(self, audit_ctx, user_id, key_id):
-        internal_authorize('DeleteAccessKey', f'arn:tinyauth:users/{user_id}')
+    def delete(self, audit_ctx, username, key_id):
+        internal_authorize('DeleteAccessKey', f'arn:tinyauth:users/{username}')
 
-        access_key = self._get_or_404(user_id, key_id)
+        user = User.query.filter(User.username == username).first()
+        if not user:
+            abort(404, message=f'User doesn\'t exist')
+
+        access_key = self._get_or_404(user, key_id)
         audit_ctx['request.username'] = access_key.user.username
         db.session.delete(access_key)
         db.session.commit()
@@ -60,8 +68,8 @@ class AccessKeyResource(Resource):
 class AccessKeysResource(Resource):
 
     @audit_request_cbv('ListAccessKeys')
-    def get(self, audit_ctx, user_id):
-        user = User.query.filter(User.id == user_id).first()
+    def get(self, audit_ctx, username):
+        user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message='User not found')
 
@@ -73,21 +81,21 @@ class AccessKeysResource(Resource):
             AccessKey,
             request,
             access_key_fields,
-            AccessKey.query.filter(AccessKey.user_id == user_id),
+            AccessKey.query.filter(AccessKey.user == user),
         )
 
     @audit_request_cbv('CreateAccessKey')
-    def post(self, audit_ctx, user_id):
-        user = User.query.filter(User.id == user_id).first()
+    def post(self, audit_ctx, username):
+        user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message='User not found')
 
         audit_ctx['request.username'] = user.username
 
-        internal_authorize('CreateAccessKey', f'arn:tinyauth:users/{user_id}')
+        internal_authorize('CreateAccessKey', f'arn:tinyauth:users/{username}')
 
         access_key = AccessKey(
-            user_id=user_id,
+            user=user,
             access_key_id='AK' + ''.join(random.SystemRandom().choice(ACCESS_KEY_ID_LETTERS) for _ in range(18)),
             secret_access_key=''.join(random.SystemRandom().choice(SECRET_ACCESS_KEY_LETTERS) for _ in range(40)),
         )
@@ -99,5 +107,5 @@ class AccessKeysResource(Resource):
 
 
 access_key_api = Api(access_key_blueprint, prefix='/api/v1')
-access_key_api.add_resource(AccessKeysResource, '/users/<user_id>/keys')
-access_key_api.add_resource(AccessKeyResource, '/users/<user_id>/keys/<key_id>')
+access_key_api.add_resource(AccessKeysResource, '/users/<username>/keys')
+access_key_api.add_resource(AccessKeyResource, '/users/<username>/keys/<key_id>')
