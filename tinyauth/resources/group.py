@@ -9,7 +9,7 @@ from tinyauth.models import Group, User
 from tinyauth.simplerest import build_response_for_request
 
 group_fields = {
-    'id': fields.Integer,
+    'id': fields.String(attribute='name'),
     'name': fields.String,
 }
 

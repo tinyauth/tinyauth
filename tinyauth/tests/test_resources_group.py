@@ -68,7 +68,7 @@ class TestGroups(TestCase):
             content_type='application/json',
         )
         assert response.status_code == 200
-        assert json.loads(response.get_data(as_text=True)) == {'id': 1, 'name': 'devs'}
+        assert json.loads(response.get_data(as_text=True)) == {'id': 'devs', 'name': 'devs'}
 
         args, kwargs = self.audit_log.call_args_list[0]
         assert args[0] == 'CreateGroup'
@@ -185,7 +185,7 @@ class TestGroups(TestCase):
             content_type='application/json',
         )
         assert response.status_code == 200
-        assert json.loads(response.get_data(as_text=True)) == {'id': 1, 'name': 'devs'}
+        assert json.loads(response.get_data(as_text=True)) == {'id': 'devs', 'name': 'devs'}
 
         args, kwargs = self.audit_log.call_args_list[0]
         assert args[0] == 'UpdateGroup'
@@ -239,7 +239,7 @@ class TestGroups(TestCase):
             content_type='application/json',
         )
         assert response.status_code == 200
-        assert json.loads(response.get_data(as_text=True)) == {'id': 1, 'name': 'devs'}
+        assert json.loads(response.get_data(as_text=True)) == {'id': 'devs', 'name': 'devs'}
 
         args, kwargs = self.audit_log.call_args_list[0]
         assert args[0] == 'GetGroup'
