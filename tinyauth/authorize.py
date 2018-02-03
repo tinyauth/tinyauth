@@ -26,7 +26,7 @@ def format_arn(resource_class, resource=''):
     return ''.join((
         get_arn_base(),
         '/'.join((resource_class, resource))
-))
+    ))
 
 
 def _authorize_user(user, action, resource, headers, context):
