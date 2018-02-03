@@ -19,11 +19,11 @@ class TestCase(base.TestCase):
         db.session.commit()
 
     def test_list_group_policies(self):
-        response = self.req('get', '/api/v1/groups/1/policies')
+        response = self.req('get', '/api/v1/groups/test-group/policies')
 
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == [{
-            'id': 1,
+            'id': 'test-policy',
             'name': 'test-policy',
             'policy': json.dumps({}),
         }]
@@ -37,11 +37,11 @@ class TestCase(base.TestCase):
         }
 
     def test_get_group_policy(self):
-        response = self.req('get', '/api/v1/groups/1/policies/1')
+        response = self.req('get', '/api/v1/groups/test-group/policies/test-policy')
 
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {
-            'id': 1,
+            'id': 'test-policy',
             'name': 'test-policy',
             'policy': json.dumps({}),
         }
@@ -55,18 +55,18 @@ class TestCase(base.TestCase):
         }
 
     def test_create_group_policy(self):
-        response = self.req('post', '/api/v1/groups/1/policies', body={
+        response = self.req('post', '/api/v1/groups/test-group/policies', body={
             'name': 'example1',
             'policy': json.dumps({'Statement': []})
         })
 
         assert json.loads(response.get_data(as_text=True)) == {
-            'id': 2,
+            'id': 'example1',
             'name': 'example1',
             'policy': json.dumps({'Statement': []}),
         }
 
-        response = self.req('get', '/api/v1/groups/1/policies')
+        response = self.req('get', '/api/v1/groups/test-group/policies')
         assert len(json.loads(response.get_data(as_text=True))) == 2
 
         args, kwargs = self.audit_log.call_args_list[0]
@@ -78,21 +78,21 @@ class TestCase(base.TestCase):
         }
 
     def test_delete_group_policy(self):
-        response = self.req('post', '/api/v1/groups/1/policies', body={
+        response = self.req('post', '/api/v1/groups/test-group/policies', body={
             'name': 'example1',
             'policy': json.dumps({'Statement': []})
         })
         assert response.status_code == 200
 
-        response = self.req('get', '/api/v1/groups/1/policies')
+        response = self.req('get', '/api/v1/groups/test-group/policies')
         assert len(json.loads(response.get_data(as_text=True))) == 2
 
-        response = self.req('delete', '/api/v1/groups/1/policies/2')
+        response = self.req('delete', '/api/v1/groups/test-group/policies/example1')
 
         assert response.status_code == 201
         assert json.loads(response.get_data(as_text=True)) == {}
 
-        response = self.req('get', '/api/v1/groups/1/policies')
+        response = self.req('get', '/api/v1/groups/test-group/policies')
         assert len(json.loads(response.get_data(as_text=True))) == 1
 
         args, kwargs = self.audit_log.call_args_list[2]

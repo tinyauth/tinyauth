@@ -16,7 +16,7 @@ class Json(fields.Raw):
 
 
 group_policy_fields = {
-    'id': fields.Integer,
+    'id': fields.String(attribute='name'),
     'name': fields.String,
     'policy': Json,
 }
@@ -30,27 +30,35 @@ group_policy_blueprint = Blueprint('group_policy', __name__)
 
 class GroupPolicyResource(Resource):
 
-    def _get_or_404(self, group_id, policy_id):
-        policy = GroupPolicy.query.filter(GroupPolicy.group_id == group_id, GroupPolicy.id == policy_id).first()
+    def _get_or_404(self, group, policy_name):
+        policy = GroupPolicy.query.filter(GroupPolicy.group == group, GroupPolicy.name == policy_name).first()
         if not policy:
-            abort(404, message=f'Policy {policy_id} for user {group_id} does not exist')
+            abort(404, message=f'Policy {policy_name} for user {group} does not exist')
         return policy
 
     @audit_request_cbv('GetGroupPolicy')
-    def get(self, audit_ctx, group_id, policy_id):
+    def get(self, audit_ctx, group_id, policy_name):
         internal_authorize('GetGroupPolicy', f'arn:tinyauth:groups/{group_id}')
 
-        policy = self._get_or_404(group_id, policy_id)
+        group = Group.query.filter(Group.name == group_id).first()
+        if not group:
+            abort(404, message=f'group {group_id} does not exist')
+
+        policy = self._get_or_404(group, policy_name)
         audit_ctx['request.group'] = policy.group.name
         return jsonify(marshal(policy, group_policy_fields))
 
     @audit_request_cbv('UpdateGroupPolicy')
-    def put(self, audit_ctx, group_id, policy_id):
+    def put(self, audit_ctx, group_id, policy_name):
         internal_authorize('UpdateGroupPolicy', f'arn:tinyauth:groups/{group_id}')
+
+        group = Group.query.filter(Group.name == group_id).first()
+        if not group:
+            abort(404, message=f'group {group_id} does not exist')
 
         args = group_policy_parser.parse_args()
 
-        policy = self._get_or_404(group_id, policy_id)
+        policy = self._get_or_404(group, policy_name)
         audit_ctx['request.group'] = policy.group.name
         policy.name = args['name']
         policy.policy = json.loads(args['policy'])
@@ -61,10 +69,14 @@ class GroupPolicyResource(Resource):
         return jsonify(marshal(policy, group_policy_fields))
 
     @audit_request_cbv('DeleteGroupPolicy')
-    def delete(self, audit_ctx, group_id, policy_id):
+    def delete(self, audit_ctx, group_id, policy_name):
         internal_authorize('DeleteGroupPolicy', f'arn:tinyauth:groups/{group_id}')
 
-        policy = self._get_or_404(group_id, policy_id)
+        group = Group.query.filter(Group.name == group_id).first()
+        if not group:
+            abort(404, message=f'group {group_id} does not exist')
+
+        policy = self._get_or_404(group, policy_name)
         audit_ctx['request.group'] = policy.group.name
         db.session.delete(policy)
         db.session.commit()
@@ -76,7 +88,7 @@ class GroupPoliciesResource(Resource):
 
     @audit_request_cbv('ListGroupPolicies')
     def get(self, audit_ctx, group_id):
-        group = Group.query.filter(Group.id == group_id).first()
+        group = Group.query.filter(Group.name == group_id).first()
         if not group:
             abort(404, message=f'Group {group_id} does not exist')
 
@@ -88,12 +100,12 @@ class GroupPoliciesResource(Resource):
             GroupPolicy,
             request,
             group_policy_fields,
-            GroupPolicy.query.filter(GroupPolicy.group_id == group_id),
+            GroupPolicy.query.filter(GroupPolicy.group == group),
         )
 
     @audit_request_cbv('CreateGroupPolicy')
     def post(self, audit_ctx, group_id):
-        group = Group.query.filter(Group.id == group_id).first()
+        group = Group.query.filter(Group.name == group_id).first()
         if not group:
             abort(404, message=f'Group {group_id} does not exist')
 
@@ -104,7 +116,7 @@ class GroupPoliciesResource(Resource):
         internal_authorize('CreateGroupPolicy', f'arn:tinyauth:groups/args["name"]')
 
         policy = GroupPolicy(
-            group_id=group_id,
+            group=group,
             name=args['name'],
             policy=json.loads(args['policy']),
         )
@@ -117,4 +129,4 @@ class GroupPoliciesResource(Resource):
 
 group_policy_api = Api(group_policy_blueprint, prefix='/api/v1')
 group_policy_api.add_resource(GroupPoliciesResource, '/groups/<group_id>/policies')
-group_policy_api.add_resource(GroupPolicyResource, '/groups/<group_id>/policies/<policy_id>')
+group_policy_api.add_resource(GroupPolicyResource, '/groups/<group_id>/policies/<policy_name>')
