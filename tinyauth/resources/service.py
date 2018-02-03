@@ -11,6 +11,8 @@ from ..audit import audit_request, format_headers_for_audit_log
 from ..authorize import (
     external_authorize,
     external_authorize_login,
+    format_arn,
+    get_arn_base,
     internal_authorize,
 )
 from ..exceptions import AuthenticationError
@@ -36,7 +38,7 @@ logger = logging.getLogger("tinyauth.audit")
 @service_blueprint.route('/api/v1/authorize-login', methods=['POST'])
 @audit_request('AuthorizeByLogin')
 def service_authorize_login(audit_ctx):
-    internal_authorize('Authorize', f'arn:tinyauth:')
+    internal_authorize('Authorize', get_arn_base())
 
     args = authorize_parser.parse_args()
 
@@ -63,7 +65,7 @@ def service_authorize_login(audit_ctx):
 def service_authorize(audit_ctx):
     audit_ctx['request.legacy'] = True
 
-    internal_authorize('Authorize', f'arn:tinyauth:')
+    internal_authorize('Authorize', get_arn_base())
 
     args = authorize_parser.parse_args()
 
@@ -89,7 +91,7 @@ def service_authorize(audit_ctx):
 @audit_request('GetTokenForLogin')
 def get_token_for_login(audit_ctx, service):
     audit_ctx['request.service'] = service
-    internal_authorize('GetTokenForLogin', f'arn:tinyauth:')
+    internal_authorize('GetTokenForLogin', format_arn('services', service))
 
     user_parser = RequestParser()
     user_parser.add_argument('username', type=str, location='json', required=True)
@@ -147,7 +149,7 @@ def batch_service_authorize(audit_ctx, service):
     audit_ctx['request.service'] = service
     audit_ctx['response.authorized'] = False
 
-    internal_authorize('BatchAuthorizeByToken', f'arn:tinyauth:')
+    internal_authorize('BatchAuthorizeByToken', format_arn('services', service))
 
     args = batch_authorize_parser.parse_args()
 

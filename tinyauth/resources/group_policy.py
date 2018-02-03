@@ -72,7 +72,7 @@ class GroupPolicyResource(Resource):
     @audit_request_cbv('DeleteGroupPolicy')
     def delete(self, audit_ctx, group_id, policy_name):
         audit_ctx['request.group'] = group_id
-        internal_authorize('DeleteGroupPolicy', f'arn:tinyauth:groups/{group_id}')
+        internal_authorize('DeleteGroupPolicy', format_arn('groups', group_id))
 
         group = Group.query.filter(Group.name == group_id).first()
         if not group:
