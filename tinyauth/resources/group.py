@@ -32,6 +32,7 @@ class GroupResource(Resource):
         internal_authorize('GetGroup', f'arn:tinyauth:groups/{group_id}')
 
         group = self._get_or_404(group_id)
+        audit_ctx['request.group'] = group.name
         return jsonify(marshal(group, group_fields))
 
     @audit_request_cbv('UpdateGroup')
@@ -41,6 +42,7 @@ class GroupResource(Resource):
         args = group_parser.parse_args()
 
         group = self._get_or_404(group_id)
+        audit_ctx['request.group'] = group.name
         group.name = args['name']
         db.session.add(group)
 
@@ -53,6 +55,7 @@ class GroupResource(Resource):
         internal_authorize('DeleteGroup', f'arn:tinyauth:groups/{group_id}')
 
         group = self._get_or_404(group_id)
+        audit_ctx['request.group'] = group.name
         db.session.delete(group)
 
         return make_response(jsonify({}), 201, [])
@@ -69,6 +72,7 @@ class GroupsResource(Resource):
     @audit_request_cbv('CreateGroup')
     def post(self, audit_ctx):
         args = group_parser.parse_args()
+        audit_ctx['request.group'] = args['name']
 
         internal_authorize('CreateGroup', f'arn:tinyauth:groups/args["name"]')
 
@@ -91,6 +95,8 @@ def add_user_to_group(audit_ctx, group_id):
     if not group:
         abort(404, message=f'group {group_id} does not exist')
 
+    audit_ctx['request.group'] = group.name
+
     user_parser = reqparse.RequestParser()
     user_parser.add_argument('user', type=int, location='json', required=True)
     args = user_parser.parse_args()
@@ -98,6 +104,8 @@ def add_user_to_group(audit_ctx, group_id):
     user = User.query.filter(User.id == args['user']).first()
     if not user:
         abort(404, message=f'user {args["user"]} does not exist')
+
+    audit_ctx['request.username'] = user.username
 
     group.users.append(user)
     db.session.add(group)
@@ -116,9 +124,13 @@ def remove_user_from_group(audit_ctx, group_id, user_id):
     if not group:
         abort(404, message=f'group {group_id} does not exist')
 
+    audit_ctx['request.group'] = group.name
+
     user = User.query.filter(User.id == user_id).first()
     if not user:
         abort(404, message=f'user {user_id} does not exist')
+
+    audit_ctx['request.username'] = user.username
 
     if user in group.users:
         group.users.remove(user)

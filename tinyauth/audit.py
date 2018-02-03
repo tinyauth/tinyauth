@@ -121,7 +121,7 @@ def audit_request_cbv(event_name):
 
             try:
                 response = f(self, context, *args, **kwargs)
-                context['http.status'] = getattr(response, 'code', 200)
+                context['http.status'] = getattr(response, 'status_code', 200)
                 return response
             except (ValidationError, AuthorizationError, AuthenticationError) as e:
                 context['http.status'] = e.code

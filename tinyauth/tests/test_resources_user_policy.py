@@ -100,6 +100,6 @@ class TestCase(base.TestCase):
         assert args[0] == 'DeleteUserPolicy'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
-            'http.status': 200,
+            'http.status': 201,
             'request.username': 'charles',
         }

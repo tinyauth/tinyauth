@@ -23,6 +23,13 @@ class TestGroups(TestCase):
         assert response.get_data(as_text=True) == '[]\n'
         assert b''.join(response.response) == b'[]\n'
 
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'ListGroups'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+        }
+
     def test_create_group_noauth(self):
         response = self.client.post(
             '/api/v1/groups',
@@ -36,6 +43,15 @@ class TestGroups(TestCase):
             'errors': {
                 'authorization': 'UnsignedRequest'
             }
+        }
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'CreateGroup'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 401,
+            'errors': {'authorization': 'UnsignedRequest'},
+            'request.group': 'devs',
         }
 
     def test_create_group_with_auth(self):
@@ -53,6 +69,14 @@ class TestGroups(TestCase):
         )
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {'id': 1, 'name': 'devs'}
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'CreateGroup'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.group': 'devs',
+        }
 
     def test_delete_group_with_auth_but_no_perms(self):
         grp = Group(name='freddy')
@@ -75,6 +99,14 @@ class TestGroups(TestCase):
             }
         }
 
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'DeleteGroup'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 403,
+            'errors': {'authorization': 'NotPermitted'},
+        }
+
     def test_delete_group_with_auth(self):
         grp = Group(name='devs')
         db.session.add(grp)
@@ -92,6 +124,14 @@ class TestGroups(TestCase):
         )
         assert response.status_code == 201
         assert json.loads(response.get_data(as_text=True)) == {}
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'DeleteGroup'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 201,
+            'request.group': 'devs',
+        }
 
     def test_put_group_with_auth_but_no_perms(self):
         grp = Group(name='devs')
@@ -118,6 +158,14 @@ class TestGroups(TestCase):
             }
         }
 
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'UpdateGroup'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 403,
+            'errors': {'authorization': 'NotPermitted'},
+        }
+
     def test_put_group_with_auth(self):
         grp = Group(name='devs')
         db.session.add(grp)
@@ -138,6 +186,14 @@ class TestGroups(TestCase):
         )
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {'id': 1, 'name': 'devs'}
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'UpdateGroup'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.group': 'devs',
+        }
 
     def test_get_group_with_auth_but_no_perms(self):
         grp = Group(name='freddy')
@@ -160,6 +216,14 @@ class TestGroups(TestCase):
             }
         }
 
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'GetGroup'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 403,
+            'errors': {'authorization': 'NotPermitted'},
+        }
+
     def test_get_group_with_auth(self):
         grp = Group(name='devs')
         db.session.add(grp)
@@ -176,3 +240,11 @@ class TestGroups(TestCase):
         )
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {'id': 1, 'name': 'devs'}
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'GetGroup'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.group': 'devs',
+        }
