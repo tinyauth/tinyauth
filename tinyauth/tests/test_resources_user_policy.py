@@ -22,6 +22,14 @@ class TestCase(base.TestCase):
             }),
         }]
 
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'ListUserPolicies'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.username': 'charles',
+        }
+
     def test_get_user_policy(self):
         response = self.req('get', '/api/v1/users/1/policies/1')
 
@@ -39,6 +47,14 @@ class TestCase(base.TestCase):
             }),
         }
 
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'GetUserPolicy'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.username': 'charles',
+        }
+
     def test_create_user_policy(self):
         response = self.req('post', '/api/v1/users/1/policies', body={
             'name': 'example1',
@@ -53,6 +69,14 @@ class TestCase(base.TestCase):
 
         response = self.req('get', '/api/v1/users/1/policies')
         assert len(json.loads(response.get_data(as_text=True))) == 2
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'CreateUserPolicy'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.username': 'charles',
+        }
 
     def test_delete_user_policy(self):
         response = self.req('post', '/api/v1/users/1/policies', body={
@@ -71,3 +95,11 @@ class TestCase(base.TestCase):
 
         response = self.req('get', '/api/v1/users/1/policies')
         assert len(json.loads(response.get_data(as_text=True))) == 1
+
+        args, kwargs = self.audit_log.call_args_list[2]
+        assert args[0] == 'DeleteUserPolicy'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.username': 'charles',
+        }
