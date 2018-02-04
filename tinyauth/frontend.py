@@ -1,7 +1,6 @@
 import datetime
 import json
 import uuid
-from urllib.parse import urljoin, urlparse
 
 import jwt
 from flask import (
