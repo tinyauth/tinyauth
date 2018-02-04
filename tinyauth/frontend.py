@@ -27,12 +27,6 @@ user_parser.add_argument('username', type=str, location='json', required=True)
 user_parser.add_argument('password', type=str, location='json', required=True)
 
 
-def is_safe_url(target):
-    ref_url = urlparse(request.host_url)
-    test_url = urlparse(urljoin(request.host_url, target))
-    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
-
-
 def get_session():
     session = request.cookies.get('tinysess')
 
