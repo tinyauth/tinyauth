@@ -133,6 +133,27 @@ class TestPolicyConditions(unittest.TestCase):
 
 class TestAllowedPolicies(unittest.TestCase):
 
+    def test_simple_deny(self):
+        policy = {
+            'Version': '2012-10-17',
+            'Statement': [{
+                'Action': 'myservice:ListInstances',
+                'Resource': 'arn::myservice:::instances/foo_*',
+                'Condition': {
+                    'NotIpAddress': {'SourceIp': '127.0.0.0/24'}
+                },
+                'Effect': 'Deny',
+            }]
+        }
+
+        context = {
+            'SourceIp': '192.168.0.2',
+        }
+
+        allow, deny = get_allowed_resources(policy, 'myservice:ListInstances', context)
+        assert deny == ['arn::myservice:::instances/foo_*']
+        assert allow == []
+
     def test_simple_allow(self):
         policy = {
             'Version': '2012-10-17',
