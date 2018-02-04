@@ -1,4 +1,5 @@
 import json
+from unittest import mock
 
 from . import base
 
@@ -37,10 +38,12 @@ class TestCase(base.TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
             'request.username': 'charles',
+            'request.access_key_id': 'AKIDEXAMPLE',
         }
 
     def test_create_access_key(self):
-        response = self.req('post', '/api/v1/users/charles/keys')
+        with mock.patch('tinyauth.resources.access_key.ACCESS_KEY_ID_LETTERS', new='I'):
+            response = self.req('post', '/api/v1/users/charles/keys')
         d = json.loads(response.get_data(as_text=True))
         assert len(d['access_key_id']) == 20
         assert d['access_key_id'] == d['access_key_id'].upper()
@@ -55,10 +58,12 @@ class TestCase(base.TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
             'request.username': 'charles',
+            'response.access_key_id': 'AKIIIIIIIIIIIIIIIIII',
         }
 
     def test_delete_access_key(self):
-        response = self.req('post', '/api/v1/users/charles/keys')
+        with mock.patch('tinyauth.resources.access_key.ACCESS_KEY_ID_LETTERS', new='I'):
+            response = self.req('post', '/api/v1/users/charles/keys')
 
         response = self.req('get', '/api/v1/users/charles/keys')
         payload = json.loads(response.get_data(as_text=True))
@@ -79,4 +84,5 @@ class TestCase(base.TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 201,
             'request.username': 'charles',
+            'request.access_key_id': 'AKIIIIIIIIIIIIIIIIII'
         }

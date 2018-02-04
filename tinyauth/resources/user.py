@@ -47,6 +47,11 @@ class UserResource(Resource):
 
         args = user_parser.parse_args()
 
+        if 'username' in args:
+            audit_ctx['request.new-username'] = args['username']
+        if 'password' in args:
+            audit_ctx['request.password'] = '********'
+
         user = self._get_or_404(username)
 
         if 'username' in args:
@@ -91,6 +96,7 @@ class UsersResource(Resource):
         )
         if args['password']:
             user.set_password(args['password'])
+            audit_ctx['request.password'] = '********'
 
         db.session.add(user)
         db.session.commit()

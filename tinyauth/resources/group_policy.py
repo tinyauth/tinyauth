@@ -39,6 +39,7 @@ class GroupPolicyResource(Resource):
     @audit_request_cbv('GetGroupPolicy')
     def get(self, audit_ctx, group_id, policy_name):
         audit_ctx['request.group'] = group_id
+        audit_ctx['request.policy'] = policy_name
         internal_authorize('GetGroupPolicy', format_arn('groups', group_id))
 
         group = Group.query.filter(Group.name == group_id).first()
@@ -51,6 +52,7 @@ class GroupPolicyResource(Resource):
     @audit_request_cbv('UpdateGroupPolicy')
     def put(self, audit_ctx, group_id, policy_name):
         audit_ctx['request.group'] = group_id
+        audit_ctx['request.policy'] = policy_name
         internal_authorize('UpdateGroupPolicy', format_arn('groups', group_id))
 
         group = Group.query.filter(Group.name == group_id).first()
@@ -72,6 +74,7 @@ class GroupPolicyResource(Resource):
     @audit_request_cbv('DeleteGroupPolicy')
     def delete(self, audit_ctx, group_id, policy_name):
         audit_ctx['request.group'] = group_id
+        audit_ctx['request.policy'] = policy_name
         internal_authorize('DeleteGroupPolicy', format_arn('groups', group_id))
 
         group = Group.query.filter(Group.name == group_id).first()
@@ -109,11 +112,13 @@ class GroupPoliciesResource(Resource):
         audit_ctx['request.group'] = group_id
         internal_authorize('CreateGroupPolicy', format_arn('groups', group_id))
 
+        args = group_policy_parser.parse_args()
+
+        audit_ctx['request.policy'] = args['name']
+
         group = Group.query.filter(Group.name == group_id).first()
         if not group:
             abort(404, message=f'Group {group_id} does not exist')
-
-        args = group_policy_parser.parse_args()
 
         policy = GroupPolicy(
             group=group,

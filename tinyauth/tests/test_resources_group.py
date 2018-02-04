@@ -105,6 +105,7 @@ class TestGroups(TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 403,
             'errors': {'authorization': 'NotPermitted'},
+            'request.group': 'freddy',
         }
 
     def test_delete_group_with_auth(self):
@@ -140,7 +141,7 @@ class TestGroups(TestCase):
         db.session.commit()
 
         response = self.client.put(
-            '/api/v1/groups/dev',
+            '/api/v1/groups/devs',
             data=json.dumps({
                 'name': 'devs',
             }),
@@ -164,6 +165,7 @@ class TestGroups(TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 403,
             'errors': {'authorization': 'NotPermitted'},
+            'request.group': 'devs',
         }
 
     def test_put_group_with_auth(self):
@@ -222,6 +224,7 @@ class TestGroups(TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 403,
             'errors': {'authorization': 'NotPermitted'},
+            'request.group': 'freddy',
         }
 
     def test_get_group_with_auth(self):

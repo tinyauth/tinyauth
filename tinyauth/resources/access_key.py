@@ -40,6 +40,8 @@ class AccessKeyResource(Resource):
     @audit_request_cbv('GetAccessKey')
     def get(self, audit_ctx, username, key_id):
         audit_ctx['request.username'] = username
+        audit_ctx['request.access_key_id'] = key_id
+
         internal_authorize('GetAccessKey', format_arn('users', username))
 
         user = User.query.filter(User.username == username).first()
@@ -52,6 +54,7 @@ class AccessKeyResource(Resource):
     @audit_request_cbv('DeleteAccessKey')
     def delete(self, audit_ctx, username, key_id):
         audit_ctx['request.username'] = username
+        audit_ctx['request.access_key_id'] = key_id
         internal_authorize('DeleteAccessKey', format_arn('users', username))
 
         user = User.query.filter(User.username == username).first()
@@ -101,6 +104,8 @@ class AccessKeysResource(Resource):
 
         db.session.add(access_key)
         db.session.commit()
+
+        audit_ctx['response.access_key_id'] = access_key.access_key_id
 
         return jsonify(marshal(access_key, access_key_fields__initial))
 

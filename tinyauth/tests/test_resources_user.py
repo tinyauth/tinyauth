@@ -84,6 +84,7 @@ class TestCase(TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'request.username': 'mruser',
             'http.status': 200,
+            'request.password': '********',
         }
 
     def test_delete_user_with_auth_but_no_perms(self):
@@ -190,6 +191,8 @@ class TestCase(TestCase):
             'http.status': 403,
             'errors': {'authorization': 'NotPermitted'},
             'request.username': 'charles',
+            # 'request.new-username': 'freddy',
+            # 'request.password': '********',
         }
 
     def test_put_user_with_auth(self):
@@ -224,6 +227,8 @@ class TestCase(TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
             'request.username': 'freddy',
+            'request.new-username': 'freddy',
+            'request.password': '********',
         }
 
     def test_get_user_with_auth_but_no_perms(self):

@@ -53,6 +53,7 @@ class TestCase(base.TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
             'request.username': 'charles',
+            'request.policy': 'tinyauth',
         }
 
     def test_create_user_policy(self):
@@ -76,6 +77,7 @@ class TestCase(base.TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
             'request.username': 'charles',
+            'request.policy': 'example1',
         }
 
     def test_delete_user_policy(self):
@@ -102,4 +104,5 @@ class TestCase(base.TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 201,
             'request.username': 'charles',
+            'request.policy': 'example1',
         }

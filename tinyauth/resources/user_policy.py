@@ -39,6 +39,7 @@ class UserPolicyResource(Resource):
     @audit_request_cbv('GetUserPolicy')
     def get(self, audit_ctx, username, policy_name):
         audit_ctx['request.username'] = username
+        audit_ctx['request.policy'] = policy_name
         internal_authorize('GetUserPolicy', format_arn('users', username))
 
         user = User.query.filter(User.username == username).first()
@@ -51,6 +52,7 @@ class UserPolicyResource(Resource):
     @audit_request_cbv('UpdateUserPolicy')
     def put(self, audit_ctx, username, policy_name):
         audit_ctx['request.username'] = username
+        audit_ctx['request.policy'] = policy_name
         internal_authorize('UpdateUserPolicy', format_arn('users', username))
 
         user = User.query.filter(User.username == username).first()
@@ -71,6 +73,7 @@ class UserPolicyResource(Resource):
     @audit_request_cbv('DeleteUserPolicy')
     def delete(self, audit_ctx, username, policy_name):
         audit_ctx['request.username'] = username
+        audit_ctx['request.policy'] = policy_name
         internal_authorize('DeleteUserPolicy', format_arn('users', username))
 
         user = User.query.filter(User.username == username).first()
@@ -107,11 +110,12 @@ class UserPoliciesResource(Resource):
         audit_ctx['request.username'] = username
         internal_authorize('CreateUserPolicy', format_arn('users', username))
 
+        args = user_policy_parser.parse_args()
+        audit_ctx['request.policy'] = args['name']
+
         user = User.query.filter(User.username == username).first()
         if not user:
             abort(404, message=f'User doesn\'t exist')
-
-        args = user_policy_parser.parse_args()
 
         policy = UserPolicy(
             user=user,

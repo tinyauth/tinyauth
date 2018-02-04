@@ -29,6 +29,7 @@ class GroupResource(Resource):
 
     @audit_request_cbv('GetGroup')
     def get(self, audit_ctx, group_id):
+        audit_ctx['request.group'] = group_id
         internal_authorize('GetGroup', format_arn('groups', group_id))
 
         group = self._get_or_404(group_id)
@@ -37,6 +38,7 @@ class GroupResource(Resource):
 
     @audit_request_cbv('UpdateGroup')
     def put(self, audit_ctx, group_id):
+        audit_ctx['request.group'] = group_id
         internal_authorize('UpdateGroup', format_arn('groups', group_id))
 
         args = group_parser.parse_args()
@@ -52,6 +54,7 @@ class GroupResource(Resource):
 
     @audit_request_cbv('DeleteGroup')
     def delete(self, audit_ctx, group_id):
+        audit_ctx['request.group'] = group_id
         internal_authorize('DeleteGroup', format_arn('groups', group_id))
 
         group = self._get_or_404(group_id)
