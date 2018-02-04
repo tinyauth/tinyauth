@@ -1,6 +1,6 @@
 import unittest
 
-from tinyauth.policy import allow
+from tinyauth.policy import allow, get_allowed_resources
 
 
 class TestSimplePolicy(unittest.TestCase):
@@ -129,3 +129,27 @@ class TestPolicyConditions(unittest.TestCase):
                 'SourceIp': '127.0.0.1',
             }
         ) == "Default"
+
+
+class TestAllowedPolicies(unittest.TestCase):
+
+    def test_simple_allow(self):
+        policy = {
+            'Version': '2012-10-17',
+            'Statement': [{
+                'Action': 'myservice:ListInstances',
+                'Resource': 'arn::myservice:::instances/foo_*',
+                'Condition': {
+                    'NotIpAddress': {'SourceIp': '127.0.0.0/24'}
+                },
+                'Effect': 'Allow',
+            }]
+        }
+
+        context = {
+            'SourceIp': '192.168.0.2',
+        }
+
+        allow, deny = get_allowed_resources(policy, 'myservice:ListInstances', context)
+        assert allow == ['arn::myservice:::instances/foo_*']
+        assert deny == []
