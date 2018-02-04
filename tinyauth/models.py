@@ -66,7 +66,7 @@ class UserPolicy(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
-        return f'<UserrPolicy {self.name!r}>'
+        return f'<UserPolicy {self.name!r}>'
 
 
 class User(db.Model):
