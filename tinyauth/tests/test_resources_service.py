@@ -2,6 +2,7 @@ import base64
 import json
 
 from tinyauth.app import db
+from tinyauth.audit import format_json
 from tinyauth.models import UserPolicy
 
 from . import base
@@ -145,7 +146,11 @@ class TestCaseToken(base.TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
             'request.legacy': True,
-            'request.permit': 'myservice:LaunchRocket',
+            'request.permit': format_json({
+                'myservice:LaunchRocket': ['arn:myservice:rockets/thrift'],
+            }),
+            'request.actions': ['myservice:LaunchRocket'],
+            'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],
             'request.context': {},
             'response.authorized': True,
@@ -196,7 +201,11 @@ class TestCaseToken(base.TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
             'request.legacy': True,
-            'request.permit': 'myservice:LaunchRocket',
+            'request.permit': format_json({
+                'myservice:LaunchRocket': ['arn:myservice:rockets/thrift'],
+            }),
+            'request.actions': ['myservice:LaunchRocket'],
+            'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],
             'request.context': {},
             'response.authorized': False,
@@ -330,15 +339,17 @@ class TestCaseBatchToken(base.TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
             'request.service': 'myservice',
-            'request.permit': {
+            'request.permit': format_json({
                 'LaunchRocket': ['arn:myservice:rockets/thrift'],
-            },
+            }),
+            'request.actions': ['myservice:LaunchRocket'],
+            'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],
             'request.context': {},
             'response.authorized': True,
             'response.identity': 'charles',
-            'response.permitted': {'LaunchRocket': ['arn:myservice:rockets/thrift']},
-            'response.not-permitted': {},
+            'response.permitted': format_json({'LaunchRocket': ['arn:myservice:rockets/thrift']}),
+            'response.not-permitted': format_json({}),
         }
 
     def test_authorize_service_failure(self):
@@ -387,15 +398,17 @@ class TestCaseBatchToken(base.TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
             'request.service': 'myservice',
-            'request.permit': {
+            'request.permit': format_json({
                 'LaunchRocket': ['arn:myservice:rockets/thrift'],
-            },
+            }),
+            'request.actions': ['myservice:LaunchRocket'],
+            'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],
             'request.context': {},
             'response.authorized': False,
             # 'response.identity': 'charles',
-            'response.permitted': {},
-            'response.not-permitted': {'LaunchRocket': ['arn:myservice:rockets/thrift']},
+            'response.permitted': format_json({}),
+            'response.not-permitted': format_json({'LaunchRocket': ['arn:myservice:rockets/thrift']}),
         }
 
 
@@ -440,7 +453,11 @@ class TestCaseLogin(base.TestCase):
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
-            'request.permit': 'myservice:LaunchRocket',
+            'request.permit': format_json({
+                'myservice:LaunchRocket': ['arn:myservice:rockets/thrift']
+            }),
+            'request.actions': ['myservice:LaunchRocket'],
+            'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],
             'request.context': {},
             'response.authorized': True,
@@ -490,7 +507,11 @@ class TestCaseLogin(base.TestCase):
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
-            'request.permit': 'myservice:LaunchRocket',
+            'request.permit': format_json({
+                'myservice:LaunchRocket': ['arn:myservice:rockets/thrift']
+            }),
+            'request.actions': ['myservice:LaunchRocket'],
+            'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],
             'request.context': {},
             'response.authorized': False,

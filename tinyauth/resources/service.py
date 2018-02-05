@@ -160,7 +160,7 @@ def batch_service_authorize(audit_ctx, service):
     args = batch_authorize_parser.parse_args()
 
     audit_ctx.update({
-        'request.actions': args['permit'].keys(),
+        'request.actions': [':'.join((service, action)) for action in args['permit'].keys()],
         'request.resources': list(itertools.chain(*args['permit'].values())),
         'request.permit': json.dumps(args['permit'], indent=4, separators=(',', ': ')),
         'request.headers': format_headers_for_audit_log(args['headers']),

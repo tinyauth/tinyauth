@@ -148,6 +148,10 @@ def format_headers_for_audit_log(headers):
     return output
 
 
+def format_json(obj):
+    return json.dumps(obj, indent=4, separators=(',', ': '))
+
+
 def setup_audit_log(app):
     if app.config.get('AUDIT_LOG_FILENAME', None):
         handler = logging.handlers.RotatingFileHandler(
