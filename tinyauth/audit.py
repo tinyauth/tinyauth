@@ -165,3 +165,6 @@ def setup_audit_log(app):
         handler.setFormatter(AuditFormatter())
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
+
+        # If dedicated audit log is turned on don't propogate the audit events
+        logger.propagate = False
