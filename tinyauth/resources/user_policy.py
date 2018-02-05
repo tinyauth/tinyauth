@@ -60,10 +60,14 @@ class UserPolicyResource(Resource):
             abort(404, message=f'User doesn\'t exist')
 
         args = user_policy_parser.parse_args()
+        policy_json = json.loads(args['policy'])
+
+        audit_ctx['request.new-policy'] = args['name']
+        audit_ctx['request.policy-json'] = json.dumps(policy_json, indent=4, separators=(',', ': '))
 
         policy = self._get_or_404(user, policy_name)
         policy.name = args['name']
-        policy.policy = json.loads(args['policy'])
+        policy.policy = policy_json
         db.session.add(policy)
 
         db.session.commit()
@@ -111,7 +115,9 @@ class UserPoliciesResource(Resource):
         internal_authorize('CreateUserPolicy', format_arn('users', username))
 
         args = user_policy_parser.parse_args()
+        policy_json = json.loads(args['policy'])
         audit_ctx['request.policy'] = args['name']
+        audit_ctx['request.policy-json'] = json.dumps(policy_json, indent=4, separators=(',', ': '))
 
         user = User.query.filter(User.username == username).first()
         if not user:
@@ -120,7 +126,7 @@ class UserPoliciesResource(Resource):
         policy = UserPolicy(
             user=user,
             name=args['name'],
-            policy=json.loads(args['policy']),
+            policy=policy_json,
         )
 
         db.session.add(policy)

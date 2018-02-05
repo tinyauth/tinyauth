@@ -57,15 +57,17 @@ class TestCase(base.TestCase):
         }
 
     def test_create_user_policy(self):
+        policy = {'Statement': []}
+
         response = self.req('post', '/api/v1/users/charles/policies', body={
             'name': 'example1',
-            'policy': json.dumps({'Statement': []})
+            'policy': json.dumps(policy),
         })
 
         assert json.loads(response.get_data(as_text=True)) == {
             'id': 'example1',
             'name': 'example1',
-            'policy': json.dumps({'Statement': []}),
+            'policy': json.dumps(policy),
         }
 
         response = self.req('get', '/api/v1/users/charles/policies')
@@ -78,6 +80,7 @@ class TestCase(base.TestCase):
             'http.status': 200,
             'request.username': 'charles',
             'request.policy': 'example1',
+            'request.policy-json': json.dumps(policy, indent=4, separators=(',', ': ')),
         }
 
     def test_delete_user_policy(self):

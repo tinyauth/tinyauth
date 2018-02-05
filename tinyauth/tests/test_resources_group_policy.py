@@ -56,15 +56,17 @@ class TestCase(base.TestCase):
         }
 
     def test_create_group_policy(self):
+        policy = {'Statement': []}
+
         response = self.req('post', '/api/v1/groups/test-group/policies', body={
             'name': 'example1',
-            'policy': json.dumps({'Statement': []})
+            'policy': json.dumps(policy),
         })
 
         assert json.loads(response.get_data(as_text=True)) == {
             'id': 'example1',
             'name': 'example1',
-            'policy': json.dumps({'Statement': []}),
+            'policy': json.dumps(policy),
         }
 
         response = self.req('get', '/api/v1/groups/test-group/policies')
@@ -77,6 +79,7 @@ class TestCase(base.TestCase):
             'http.status': 200,
             'request.group': 'test-group',
             'request.policy': 'example1',
+            'request.policy-json': json.dumps(policy, indent=4, separators=(',', ': ')),
         }
 
     def test_delete_group_policy(self):

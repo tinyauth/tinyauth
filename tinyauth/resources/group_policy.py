@@ -60,11 +60,13 @@ class GroupPolicyResource(Resource):
             abort(404, message=f'group {group_id} does not exist')
 
         args = group_policy_parser.parse_args()
+        policy_json = json.loads(args['policy'])
+        audit_ctx['request.new-policy'] = args['name']
+        audit_ctx['request.policy-json'] = json.dumps(policy_json, indent=4, separators=(',', ': '))
 
         policy = self._get_or_404(group, policy_name)
-        audit_ctx['request.group'] = policy.group.name
         policy.name = args['name']
-        policy.policy = json.loads(args['policy'])
+        policy.policy = policy_json
         db.session.add(policy)
 
         db.session.commit()
@@ -82,7 +84,6 @@ class GroupPolicyResource(Resource):
             abort(404, message=f'group {group_id} does not exist')
 
         policy = self._get_or_404(group, policy_name)
-        audit_ctx['request.group'] = policy.group.name
         db.session.delete(policy)
         db.session.commit()
 
@@ -113,8 +114,10 @@ class GroupPoliciesResource(Resource):
         internal_authorize('CreateGroupPolicy', format_arn('groups', group_id))
 
         args = group_policy_parser.parse_args()
+        policy_json = json.loads(args['policy'])
 
         audit_ctx['request.policy'] = args['name']
+        audit_ctx['request.policy-json'] = json.dumps(policy_json, indent=4, separators=(',', ': '))
 
         group = Group.query.filter(Group.name == group_id).first()
         if not group:
@@ -123,7 +126,7 @@ class GroupPoliciesResource(Resource):
         policy = GroupPolicy(
             group=group,
             name=args['name'],
-            policy=json.loads(args['policy']),
+            policy=policy_json,
         )
 
         db.session.add(policy)
