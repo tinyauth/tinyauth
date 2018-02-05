@@ -1,5 +1,7 @@
 import collections
 import datetime
+import itertools
+import json
 import logging
 import uuid
 
@@ -42,7 +44,9 @@ def service_authorize_login(audit_ctx):
 
     args = authorize_parser.parse_args()
 
-    audit_ctx['request.permit'] = args['action']
+    audit_ctx['request.actions'] = [args['action']]
+    audit_ctx['request.resources'] = [args['resource']]
+    audit_ctx['request.permit'] = json.dumps({args['action']: [args['resource']]}, indent=4, separators=(',', ': '))
     audit_ctx['request.headers'] = format_headers_for_audit_log(args['headers'])
     audit_ctx['request.context'] = args['context']
 
@@ -69,7 +73,9 @@ def service_authorize(audit_ctx):
 
     args = authorize_parser.parse_args()
 
-    audit_ctx['request.permit'] = args['action']
+    audit_ctx['request.actions'] = [args['action']]
+    audit_ctx['request.resources'] = [args['resource']]
+    audit_ctx['request.permit'] = json.dumps({args['action']: [args['resource']]}, indent=4, separators=(',', ': '))
     audit_ctx['request.headers'] = format_headers_for_audit_log(args['headers'])
     audit_ctx['request.context'] = args['context']
 
@@ -154,7 +160,9 @@ def batch_service_authorize(audit_ctx, service):
     args = batch_authorize_parser.parse_args()
 
     audit_ctx.update({
-        'request.permit': args['permit'],
+        'request.actions': args['permit'].keys(),
+        'request.resources': list(itertools.chain(*args['permit'].values())),
+        'request.permit': json.dumps(args['permit'], indent=4, separators=(',', ': ')),
         'request.headers': format_headers_for_audit_log(args['headers']),
         'request.context': args['context'],
     })
@@ -181,8 +189,8 @@ def batch_service_authorize(audit_ctx, service):
             if not step_result['Authorized']:
                 result['ErrorCode'] = step_result['ErrorCode']
 
-    audit_ctx['response.permitted'] = dict(result['Permitted'])
-    audit_ctx['response.not-permitted'] = dict(result['NotPermitted'])
+    audit_ctx['response.permitted'] = json.dumps(dict(result['Permitted']), indent=4, separators=(',', ': '))
+    audit_ctx['response.not-permitted'] = json.dumps(dict(result['NotPermitted']), indent=4, separators=(',', ': '))
 
     if len(result['NotPermitted']) == 0 and len(result['Permitted']) > 0:
         audit_ctx['response.authorized'] = result['Authorized'] = True
