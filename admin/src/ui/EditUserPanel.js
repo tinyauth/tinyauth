@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { push } from 'react-router-redux';
 
 import { Card, CardText } from 'material-ui/Card';
 import ActionCheck from 'material-ui/svg-icons/action/check-circle';
@@ -57,7 +58,7 @@ class EditUserPanel extends Component {
       this.setState({'submitting': true});
 
       try {
-        let { status } = await request('PUT', `/users/${user}`, {
+        let { status, json } = await request('PUT', `/users/${user}`, {
           username: username,
           password: password,
         });
@@ -65,7 +66,13 @@ class EditUserPanel extends Component {
         if (status === 200) {
           // Let the user know it worked
           dispatch(showNotification("Saved user"));
-          dispatch(crudGetOneAction("users", user));
+          dispatch(crudGetOneAction("users", json['id']));
+
+          // This save caused id to change - redirect to self
+          if (json['id'] !== user) {
+            dispatch(push('/users/' + json['id']));
+          }
+
         } else {
           dispatch(showNotification("Unhandled server error. Please try again laster."));
         }

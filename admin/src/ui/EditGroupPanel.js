@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { push } from 'react-router-redux';
 
 import { Card, CardText } from 'material-ui/Card';
 import ActionCheck from 'material-ui/svg-icons/action/check-circle';
@@ -55,14 +56,20 @@ class EditGroupPanel extends Component {
       this.setState({'submitting': true});
 
       try {
-        let { status } = await request('PUT', `/groups/${group}`, {
+        let { status, json } = await request('PUT', `/groups/${group}`, {
           name: name,
         });
 
         if (status === 200) {
           // Let the user know it worked
           dispatch(showNotification("Saved group"));
-          dispatch(crudGetOneAction("groups", group));
+          dispatch(crudGetOneAction("groups", json['id']));
+
+          // This save caused id to change - redirect to self
+          if (json['id'] !== group) {
+            dispatch(push('/groups/' + json['id']));
+          }
+
         } else {
           dispatch(showNotification("Unhandled server error. Please try again laster."));
         }
