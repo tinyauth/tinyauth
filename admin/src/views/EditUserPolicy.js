@@ -114,6 +114,7 @@ class EditUserPolicy extends Component {
                   value={this.state.policy}
                   onChange={ev => this.setState({policy: ev.target.value, pristine: false})}
                   multiLine={true}
+                  fullWidth={true}
                   rows={10}
                   />
           </CardText>
