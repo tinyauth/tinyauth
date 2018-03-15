@@ -29,29 +29,21 @@ def format_arn(resource_class, resource=''):
 
 
 def _authorize_user(user, action, resource, headers, context):
+    policy = current_app.auth_backend.get_policy(user)
+
     ctx = dict(context)
-
-    policy = {
-        'Statement': []
-    }
-
-    for group in user.groups:
-        for p in group.policies:
-            policy['Statement'].extend(p.policy.get('Statement', []))
-
-    for p in user.policies:
-        policy['Statement'].extend(p.policy.get('Statement', []))
 
     if allow(policy, action, resource, ctx) != 'Allow':
         return {
             'Authorized': False,
             'ErrorCode': 'NotPermitted',
             'Status': 403,
+            'Identity': user,
         }
 
     return {
         'Authorized': True,
-        'Identity': user.username,
+        'Identity': user,
     }
 
 
@@ -61,12 +53,10 @@ def _authorize_access_key(region, service, action, resource, headers, context):
     except IdentityError as e:
         return e.asdict()
 
-    user = User.query.filter(User.username == username).one()
-
     context = dict(context)
     context['Mfa'] = mfa
 
-    return _authorize_user(user, action, resource, headers, context)
+    return _authorize_user(username, action, resource, headers, context)
 
 
 def _authorize_login(action, resource, headers, context):
@@ -100,7 +90,7 @@ def _authorize_login(action, resource, headers, context):
             'Status': 401,
         }
 
-    return _authorize_user(user, action, resource, headers, context)
+    return _authorize_user(user.username, action, resource, headers, context)
 
 
 def external_authorize_login(action, resource, headers, context):

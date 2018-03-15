@@ -193,6 +193,7 @@ class TestCaseToken(base.TestCase):
             'Authorized': False,
             'ErrorCode': 'NotPermitted',
             'Status': 403,
+            'Identity': 'charles',
         }
 
         args, kwargs = self.audit_log.call_args_list[0]
@@ -209,6 +210,7 @@ class TestCaseToken(base.TestCase):
             'request.headers': ['Authorization: ** NOT LOGGED **'],
             'request.context': {},
             'response.authorized': False,
+            'response.identity': 'charles',
         }
 
 
@@ -499,6 +501,7 @@ class TestCaseLogin(base.TestCase):
         assert json.loads(response.get_data(as_text=True)) == {
             'Authorized': False,
             'ErrorCode': 'NotPermitted',
+            'Identity': 'charles',
             'Status': 403
         }
 
@@ -515,6 +518,7 @@ class TestCaseLogin(base.TestCase):
             'request.headers': ['Authorization: ** NOT LOGGED **'],
             'request.context': {},
             'response.authorized': False,
+            'response.identity': 'charles',
         }
 
 
