@@ -1,4 +1,5 @@
-from . import basicauth, jwt, exceptions
+from . import basicauth, jwt
+from .. import exceptions
 
 
 token_identifiers = [
@@ -7,10 +8,10 @@ token_identifiers = [
 ]
 
 
-def identify(headers):
+def identify(region, service, headers):
     for fn in token_identifiers:
         try:
-            return fn(headers)
+            return fn(region, service, headers)
         except exceptions.Unsigned:
             continue
 

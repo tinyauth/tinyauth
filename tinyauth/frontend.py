@@ -33,7 +33,20 @@ def get_session():
         return None
 
     try:
-        token = jwt.decode(session, current_app.config['SECRET_SIGNING_KEY'])
+        unverified = jwt.decode(session, '', verify=False)
+    except jwt.InvalidTokenError:
+        return None
+
+    secret = current_app.auth_backend.get_user_key(
+        'jwt',
+        '',
+        current_app.config['TINYAUTH_SERVICE'],
+        datetime.datetime.utcfromtimestamp(unverified['iat']),
+        unverified['user'],
+    )
+
+    try:
+        token = jwt.decode(session, secret['key'])
     except jwt.InvalidTokenError:
         return None
 
@@ -95,16 +108,25 @@ def login_post(audit_ctx):
     if not user.is_valid_password(req['password']):
         return Response('', 401)
 
-    expires = datetime.datetime.utcnow() + datetime.timedelta(hours=8)
+    iat = datetime.datetime.utcnow()
+    expires = iat + datetime.timedelta(hours=8)
     csrf_token = str(uuid.uuid4())
 
+    secret = current_app.auth_backend.get_user_key(
+        'jwt',
+        '',
+        current_app.config['TINYAUTH_SERVICE'],
+        iat,
+        user.username,
+    )
+
     jwt_token = jwt.encode({
-        'user': user.id,
+        'user': user.username,
         'mfa': False,
         'exp': expires,
-        'iat': datetime.datetime.utcnow(),
+        'iat': iat,
         'csrf-token': csrf_token,
-    }, current_app.config['SECRET_SIGNING_KEY'], algorithm='HS256')
+    }, secret['key'], algorithm='HS256')
 
     response = jsonify({})
     response.set_cookie('tinysess', jwt_token, httponly=True, secure=True, expires=expires)

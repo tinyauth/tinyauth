@@ -2,7 +2,7 @@ import base64
 import json
 
 from tinyauth.app import db
-from tinyauth.models import AccessKey, User
+from tinyauth.models import User
 
 from .base import TestCase
 
@@ -88,18 +88,6 @@ class TestCase(TestCase):
         }
 
     def test_delete_user_with_auth_but_no_perms(self):
-        user = User(username='freddy')
-        db.session.add(user)
-
-        access_key = AccessKey(
-            access_key_id='AKIDEXAMPLE2',
-            secret_access_key='password',
-            user=user,
-        )
-        db.session.add(access_key)
-
-        db.session.commit()
-
         response = self.client.delete(
             '/api/v1/users/charles',
             headers={
@@ -152,18 +140,6 @@ class TestCase(TestCase):
         }
 
     def test_put_user_with_auth_but_no_perms(self):
-        user = User(username='freddy')
-        db.session.add(user)
-
-        access_key = AccessKey(
-            access_key_id='AKIDEXAMPLE2',
-            secret_access_key='password',
-            user=user,
-        )
-        db.session.add(access_key)
-
-        db.session.commit()
-
         response = self.client.put(
             '/api/v1/users/charles',
             data=json.dumps({
@@ -232,18 +208,6 @@ class TestCase(TestCase):
         }
 
     def test_get_user_with_auth_but_no_perms(self):
-        user = User(username='freddy')
-        db.session.add(user)
-
-        access_key = AccessKey(
-            access_key_id='AKIDEXAMPLE2',
-            secret_access_key='password',
-            user=user,
-        )
-        db.session.add(access_key)
-
-        db.session.commit()
-
         response = self.client.get(
             '/api/v1/users/charles',
             headers={
@@ -300,18 +264,6 @@ class TestCase(TestCase):
         }
 
     def test_get_user_with_auth_but_no_perms_404(self):
-        user = User(username='freddy')
-        db.session.add(user)
-
-        access_key = AccessKey(
-            access_key_id='AKIDEXAMPLE2',
-            secret_access_key='password',
-            user=user,
-        )
-        db.session.add(access_key)
-
-        db.session.commit()
-
         response = self.client.get(
             '/api/v1/users/james',
             headers={

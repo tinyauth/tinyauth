@@ -25,7 +25,7 @@ class TestCaseIdentityJWT(base.TestCase):
         db.session.commit()
 
         response = self.client.post(
-            '/api/v1/services/myservice/get-token-for-login',
+            '/api/v1/services/tinyauth/get-token-for-login',
             data=json.dumps({
                 'username': 'charles',
                 'password': 'mrfluffy',

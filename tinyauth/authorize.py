@@ -3,9 +3,8 @@ import datetime
 from flask import current_app, jsonify, request
 from werkzeug.http import parse_authorization_header
 
-from .exceptions import AuthenticationError, AuthorizationError
+from .exceptions import AuthenticationError, AuthorizationError, IdentityError
 from .identity import identify
-from .identity.exceptions import IdentityError
 from .models import User
 from .policy import allow
 
@@ -56,11 +55,13 @@ def _authorize_user(user, action, resource, headers, context):
     }
 
 
-def _authorize_access_key(action, resource, headers, context):
+def _authorize_access_key(region, service, action, resource, headers, context):
     try:
-        user, mfa = identify(headers)
+        username, mfa = identify(region, service, headers)
     except IdentityError as e:
         return e.asdict()
+
+    user = User.query.filter(User.username == username).one()
 
     context = dict(context)
     context['Mfa'] = mfa
@@ -106,8 +107,8 @@ def external_authorize_login(action, resource, headers, context):
     return _authorize_login(action, resource, headers, context)
 
 
-def external_authorize(action, resource, headers, context):
-    return _authorize_access_key(action, resource, headers, context)
+def external_authorize(region, service, action, resource, headers, context):
+    return _authorize_access_key(region, service, action, resource, headers, context)
 
 
 def internal_authorize(action, resource, ctx=None):
@@ -118,7 +119,9 @@ def internal_authorize(action, resource, ctx=None):
     context.update(ctx or {})
 
     authorized = _authorize_access_key(
-        'tinyauth:' + action,
+        '',
+        current_app.config['TINYAUTH_SERVICE'],
+        ':'.join((current_app.config['TINYAUTH_SERVICE'], action)),
         resource,
         request.headers,
         context,

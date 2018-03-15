@@ -1,10 +1,14 @@
+import datetime
+import hmac
+
+from flask import current_app
 from werkzeug.http import parse_authorization_header
 
-from . import exceptions
-from ..models import AccessKey
+from .. import exceptions
+from ..subkey import make_basic_auth_key
 
 
-def parse(headers):
+def parse(region, service, headers):
     if 'Authorization' not in headers:
         raise exceptions.Unsigned()
 
@@ -16,11 +20,25 @@ def parse(headers):
     if not auth:
         raise exceptions.InvalidSignature()
 
-    access_key = AccessKey.query.filter(AccessKey.access_key_id == auth.username).first()
-    if not access_key:
-        raise exceptions.NoSuchKey(identity=auth.username)
+    date = datetime.datetime.utcnow()
 
-    if access_key.secret_access_key != auth.password:
+    key = current_app.auth_backend.get_access_key(
+        'basic-auth',
+        region,
+        service,
+        date,
+        auth.username,
+    )
+
+    secret = make_basic_auth_key(
+        region,
+        service,
+        date,
+        auth.username,
+        auth.password,
+    )
+
+    if not hmac.compare_digest(key['key'], secret):
         raise exceptions.InvalidSignature()
 
-    return access_key.user, False
+    return key['identity'], False

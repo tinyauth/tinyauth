@@ -24,12 +24,14 @@ from ..reqparse import RequestParser
 service_blueprint = Blueprint('service', __name__)
 
 authorize_parser = RequestParser()
+authorize_parser.add_argument('region', type=str, location='json', required=False)
 authorize_parser.add_argument('action', type=str, location='json', required=True)
 authorize_parser.add_argument('resource', type=str, location='json', required=True)
 authorize_parser.add_argument('headers', type=list, location='json', required=True)
 authorize_parser.add_argument('context', type=dict, location='json', required=True)
 
 batch_authorize_parser = RequestParser()
+batch_authorize_parser.add_argument('region', type=str, location='json', required=False)
 batch_authorize_parser.add_argument('permit', type=dict, location='json', required=True)
 batch_authorize_parser.add_argument('headers', type=list, location='json', required=True)
 batch_authorize_parser.add_argument('context', type=dict, location='json', required=True)
@@ -80,6 +82,8 @@ def service_authorize(audit_ctx):
     audit_ctx['request.context'] = args['context']
 
     result = external_authorize(
+        args['action'] or '',
+        args['action'].split(':', 1)[0] if ':' in args['action'] else '',
         action=args['action'],
         resource=args['resource'],
         headers=Headers(args['headers']),
@@ -103,6 +107,7 @@ def get_token_for_login(audit_ctx, service):
     user_parser.add_argument('username', type=str, location='json', required=True)
     user_parser.add_argument('password', type=str, location='json', required=True)
     user_parser.add_argument('csrf-strategy', type=str, location='json', required=True)
+    user_parser.add_argument('region', type=str, location='json', required=False)
     req = user_parser.parse_args()
 
     audit_ctx['request.username'] = req['username']
@@ -124,21 +129,30 @@ def get_token_for_login(audit_ctx, service):
     if not user.is_valid_password(req['password']):
         raise AuthenticationError(description=errors, response=response)
 
-    expires = datetime.datetime.utcnow() + datetime.timedelta(hours=8)
+    iat = datetime.datetime.utcnow()
+    expires = iat + datetime.timedelta(hours=8)
 
     token_contents = {
-        'user': user.id,
+        'user': user.username,
         'mfa': False,
         'exp': expires,
-        'iat': datetime.datetime.utcnow(),
+        'iat': iat,
     }
 
     if req['csrf-strategy'] == 'header-token':
         token_contents['csrf-token'] = str(uuid.uuid4())
 
+    secret = current_app.auth_backend.get_user_key(
+        'jwt',
+        req['region'] or '',
+        service,
+        iat,
+        user.username,
+    )
+
     jwt_token = jwt.encode(
         token_contents,
-        current_app.config['SECRET_SIGNING_KEY'],
+        secret['key'],
         algorithm='HS256',
     )
 
@@ -177,6 +191,8 @@ def batch_service_authorize(audit_ctx, service):
     for action, resources in args['permit'].items():
         for resource in resources:
             step_result = external_authorize(
+                args['region'] or '',
+                service,
                 action=':'.join((service, action)),
                 resource=resource,
                 headers=Headers(args['headers']),

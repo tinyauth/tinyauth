@@ -1,12 +1,13 @@
+import datetime
+
 import jwt
 from flask import current_app
 from werkzeug.http import parse_cookie
 
-from . import exceptions
-from ..models import User
+from .. import exceptions
 
 
-def parse_session(headers):
+def parse_session(region, service, headers):
     cookies = {}
     for cookie in headers.getlist('Cookie'):
         cookies.update(parse_cookie(cookie))
@@ -14,26 +15,31 @@ def parse_session(headers):
     if 'tinysess' not in cookies:
         raise exceptions.Unsigned()
 
-    secret = current_app.config['SECRET_SIGNING_KEY']
+    unverified = jwt.decode(cookies['tinysess'], '', verify=False)
+
+    secret = current_app.auth_backend.get_user_key(
+        'jwt',
+        region,
+        service,
+        datetime.datetime.utcfromtimestamp(unverified['iat']),
+        unverified.get('user', 'unknown'),
+    )
 
     try:
-        token = jwt.decode(cookies['tinysess'], secret)
-    except:
-        token = jwt.decode(cookies['tinysess'], secret, verify=False)
-        raise exceptions.InvalidSignature(identity=token.get('user', 'unknown'))
+        token = jwt.decode(cookies['tinysess'], secret['key'])
+    except Exception as e:
+        raise exceptions.InvalidSignature(identity=unverified.get('user', 'unknown'))
 
     if 'csrf-token' in token:
         if headers.get('X-CSRF-Token') != token['csrf-token']:
             raise exceptions.CsrfError(identity=token.get('user', 'unknown'))
 
-    user = User.query.filter(User.id == token['user']).first()
-
-    return user, token['mfa']
+    return token['user'], token['mfa']
 
 
-def parse(headers):
+def parse(region, service, headers):
     # FIXME: Support JWT tokens passed in Authorization header too
     if 'Cookie' in headers:
-        return parse_session(headers)
+        return parse_session(region, service, headers)
 
     raise exceptions.Unsigned()

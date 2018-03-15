@@ -20,19 +20,9 @@ logger = logging.getLogger('tinyauth.app')
 db = SQLAlchemy()
 
 
-def create_app(info):
-    app = Flask(
-        __name__,
-        static_folder=None,
-    )
-
-    app.wsgi_app = ProxyFix(app.wsgi_app)
-    RequestIdMiddleware(app)
-
+def configure_backend_db(app):
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///app.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    app.config['AUDIT_LOG_FILENAME'] = os.environ.get('AUDIT_LOG_FILENAME', None)
 
     if 'SECRET_SIGNING_KEY' not in os.environ:
         logger.critical('*** DANGER: SECRET_SIGNING_KEY not set; using random default ***')
@@ -41,10 +31,7 @@ def create_app(info):
         app.config['SECRET_SIGNING_KEY'] = os.environ['SECRET_SIGNING_KEY']
 
     db.init_app(app)
-
-    setup_audit_log(app)
-
-    CORS(app, resources={r'/api/*': {'origins': '*', 'expose_headers': 'Content-Range'}})
+    Migrate(app, db)
 
     from . import resources
     app.register_blueprint(resources.user_blueprint)
@@ -57,7 +44,40 @@ def create_app(info):
     from . import frontend
     app.register_blueprint(frontend.frontend_blueprint)
 
-    Migrate(app, db)
+    from .backends.db import Backend
+    app.auth_backend = Backend()
+
+
+def configure_backend_proxy(app):
+    from . import resources
+    app.register_blueprint(resources.service_blueprint)
+
+    from .backends import proxy
+    app.auth_backend = proxy.Backend()
+
+
+def create_app(info):
+    app = Flask(
+        __name__,
+        static_folder=None,
+    )
+
+    app.config['TINYAUTH_PARTITION'] = app.config.get('TINYAUTH_PARTITION', 'tinyauth')
+    app.config['TINYAUTH_SERVICE'] = app.config.get('TINYAUTH_SERVICE', 'tinyauth')
+
+    app.wsgi_app = ProxyFix(app.wsgi_app)
+    RequestIdMiddleware(app)
+
+    app.config['AUDIT_LOG_FILENAME'] = os.environ.get('AUDIT_LOG_FILENAME', None)
+    setup_audit_log(app)
+
+    CORS(app, resources={r'/api/*': {'origins': '*', 'expose_headers': 'Content-Range'}})
+
+    app.config['AUTH_BACKEND'] = os.environ.get('BACKEND', 'db')
+    if app.config.get('BACKEND', 'db') == 'db':
+        configure_backend_db(app)
+    elif app.config.get['BACKEND'] == 'proxy':
+        configure_backend_proxy(app)
 
     return app
 
