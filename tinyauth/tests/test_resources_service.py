@@ -608,3 +608,36 @@ class TestCaseLoginToToken(base.TestCase):
             'request.username': 'charles',
             'request.csrf-strategy': 'header-token',
         }
+
+
+class TestGetServiceAccessKeySigningToken(base.TestCase):
+
+    def test_get_signing_token(self):
+        response = self.client.get(
+            '/api/v1/region/europe/services/myservice/access-key-signing-tokens/AKIDEXAMPLE/basic-auth/DATE',
+            data=json.dumps({
+                'username': 'charles',
+                'password': 'mrfluffy',
+                'csrf-strategy': 'header-token',
+            }),
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                )
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 200
+        payload = json.loads(response.get_data(as_text=True))
+        assert 'key' in payload
+        assert 'identity' in payload
+
+        args, kwargs = self.audit_log.call_args_list[0]
+        assert args[0] == 'GetServiceAccessKeySigningToken'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.region': 'eurpoe',
+            'request.service': 'myservice',
+            'request.access-key': 'AKIDEXAMPLE',
+        }

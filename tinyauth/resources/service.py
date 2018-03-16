@@ -213,3 +213,61 @@ def batch_service_authorize(audit_ctx, service):
         audit_ctx['response.identity'] = result['Identity'] = step_result['Identity']
 
     return jsonify(result)
+
+
+@service_blueprint.route('/api/v1/regions/<region>/services/<service>/user-signing-tokens/<user>/<protocol>/<date>', methods=['GET'])
+@audit_request('GetServiceUserSigningToken')
+def GetServiceUserSigningToken(audit_ctx, region, service, user, protocol, date):
+    audit_ctx['request.region'] = region
+    audit_ctx['request.service'] = service
+    audit_ctx['request.protocol'] = protocol
+    audit_ctx['request.user'] = user
+    audit_ctx['request.date'] = date
+
+    internal_authorize('GetServiceUserSigningToken', format_arn('services', service))
+
+    secret = current_app.auth_backend.get_user_key(
+        protocol,
+        region,
+        service,
+        date,
+        user,
+    )
+
+    return jsonify(secret)
+
+
+@service_blueprint.route('/api/v1/regions/<region>/services/<service>/access-key-signing-tokens/<access_key>/<protocol>/<date>', methods=['GET'])
+@audit_request('GetServiceAccessKeySigningToken')
+def GetServiceAccessKeySigningToken(audit_ctx, region, service, access_key, protocol, date):
+    audit_ctx['request.region'] = region
+    audit_ctx['request.service'] = service
+    audit_ctx['request.protocol'] = protocol
+    audit_ctx['request.access_key'] = access_key
+    audit_ctx['request.date'] = date
+
+    internal_authorize('GetServiceAccessKeySigningToken', format_arn('services', service))
+
+    secret = current_app.auth_backend.get_access_key(
+        protocol,
+        region,
+        service,
+        date,
+        access_key,
+    )
+
+    return jsonify(secret)
+
+
+@service_blueprint.route('/api/v1/regions/<region>/services/<service>/user-policies/<user>', methods=['GET'])
+@audit_request('GetServiceUserPolicies')
+def GetServiceUserPolicies(audit_ctx, region, service, user):
+    audit_ctx['request.region'] = region
+    audit_ctx['request.service'] = service
+    audit_ctx['request.user'] = user
+
+    internal_authorize('GetServiceUserPolicies', format_arn('services', service))
+
+    # FIXME: Return a filtered subset of the policies
+    policies = current_app.auth_backend.get_policies(user)
+    return jsonify(policies)
