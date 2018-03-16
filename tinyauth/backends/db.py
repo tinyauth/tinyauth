@@ -8,7 +8,7 @@ from ..subkey import make_basic_auth_key, make_jwt_key
 
 class Backend(object):
 
-    def get_policy(self, username):
+    def get_policies(self, username):
         user = User.query.filter(User.username == username).one()
 
         policy = {

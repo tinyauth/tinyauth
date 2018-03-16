@@ -1,8 +1,5 @@
-import datetime
 import hashlib
 import hmac
-
-from . import exceptions
 
 
 def sign(key, msg):
@@ -10,10 +7,6 @@ def sign(key, msg):
 
 
 def _make_scoped_subkey(region, service, date, identity, key, protocol):
-    delta = (datetime.datetime.utcnow() - date).total_seconds()
-    if delta > 60 * 60 * 8 or delta < -60 * 15:
-        raise exceptions.ClockSkew()
-
     key = key.encode('utf-8')
 
     prefix = b'TINYAUTH'

@@ -29,7 +29,7 @@ def format_arn(resource_class, resource=''):
 
 
 def _authorize_user(user, action, resource, headers, context):
-    policy = current_app.auth_backend.get_policy(user)
+    policy = current_app.auth_backend.get_policies(user)
 
     ctx = dict(context)
 
