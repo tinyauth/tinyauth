@@ -49,7 +49,7 @@ class Backend(object):
         )
 
         token = response.json()
-        token['secret'] = base64.decode(token['secret'])
+        token['key'] = base64.b64decode(token['key'])
         return token
 
     def get_access_key(self, protocol, region, service, date, access_key_id):
@@ -74,5 +74,5 @@ class Backend(object):
         )
 
         token = response.json()
-        token['secret'] = base64.decode(token['secret'])
+        token['key'] = base64.b64decode(token['key'])
         return token
