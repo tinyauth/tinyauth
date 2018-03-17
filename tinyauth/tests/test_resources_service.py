@@ -458,6 +458,7 @@ class TestCaseLogin(base.TestCase):
             'request.permit': format_json({
                 'myservice:LaunchRocket': ['arn:myservice:rockets/thrift']
             }),
+            'request.region': '',
             'request.actions': ['myservice:LaunchRocket'],
             'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],
@@ -513,6 +514,7 @@ class TestCaseLogin(base.TestCase):
             'request.permit': format_json({
                 'myservice:LaunchRocket': ['arn:myservice:rockets/thrift']
             }),
+            'request.region': '',
             'request.actions': ['myservice:LaunchRocket'],
             'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],

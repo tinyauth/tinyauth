@@ -47,6 +47,7 @@ def service_authorize_login(audit_ctx):
 
     args = authorize_parser.parse_args()
 
+    audit_ctx['request.region'] = args['region'] or ''
     audit_ctx['request.actions'] = [args['action']]
     audit_ctx['request.resources'] = [args['resource']]
     audit_ctx['request.permit'] = json.dumps({args['action']: [args['resource']]}, indent=4, separators=(',', ': '))
@@ -54,6 +55,8 @@ def service_authorize_login(audit_ctx):
     audit_ctx['request.context'] = args['context']
 
     result = external_authorize_login(
+        args['region'],
+        args['action'].split(':', 1)[0] if ':' in args['action'] else '',
         action=args['action'],
         resource=args['resource'],
         headers=Headers(args['headers']),
@@ -276,5 +279,5 @@ def GetServiceUserPolicies(audit_ctx, region, service, user):
     internal_authorize('GetServiceUserPolicies', format_arn('services', service))
 
     # FIXME: Return a filtered subset of the policies
-    policies = current_app.auth_backend.get_policies(user)
+    policies = current_app.auth_backend.get_policies(region, service, user)
     return jsonify(policies)

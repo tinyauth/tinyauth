@@ -28,8 +28,8 @@ def format_arn(resource_class, resource=''):
     ))
 
 
-def _authorize_user(user, action, resource, headers, context):
-    policy = current_app.auth_backend.get_policies(user)
+def _authorize_user(region, service, user, action, resource, headers, context):
+    policy = current_app.auth_backend.get_policies(region, service, user)
 
     ctx = dict(context)
 
@@ -56,10 +56,10 @@ def _authorize_access_key(region, service, action, resource, headers, context):
     context = dict(context)
     context['Mfa'] = mfa
 
-    return _authorize_user(username, action, resource, headers, context)
+    return _authorize_user(region, service, username, action, resource, headers, context)
 
 
-def _authorize_login(action, resource, headers, context):
+def _authorize_login(region, service, action, resource, headers, context):
     if 'Authorization' not in headers:
         return {
             'Authorized': False,
@@ -90,11 +90,11 @@ def _authorize_login(action, resource, headers, context):
             'Status': 401,
         }
 
-    return _authorize_user(user.username, action, resource, headers, context)
+    return _authorize_user(region, service, user.username, action, resource, headers, context)
 
 
-def external_authorize_login(action, resource, headers, context):
-    return _authorize_login(action, resource, headers, context)
+def external_authorize_login(region, service, action, resource, headers, context):
+    return _authorize_login(region, service, action, resource, headers, context)
 
 
 def external_authorize(region, service, action, resource, headers, context):
