@@ -2,24 +2,29 @@ import datetime
 import importlib
 import json
 import logging
+import unittest
+from unittest import mock
 
+from tinyauth.app import create_app
 from tinyauth.audit import logger, setup_audit_log
 
-from .base import TestCase
 
+class TestAudit(unittest.TestCase):
 
-class TestAudit(TestCase):
+    def patch(self, *args, **kwargs):
+        patcher = mock.patch(*args, **kwargs)
+        self.addCleanup(patcher.stop)
+        return patcher.start()
 
     def setUp(self):
-        super().setUp()
-
-        # FIXME: Refactor class hierarchy so this isn't needed
-        self.stack.close()
-
-        self.app.config['AUDIT_LOG_FILENAME'] = '/tmp/tinyauth/audit.log'
-
         self.addCleanup(importlib.reload, logging)
         self.addCleanup(logging.shutdown)
+
+        logging.shutdown()
+        importlib.reload(logging)
+
+        self.app = create_app(self)
+        self.app.config['AUDIT_LOG_FILENAME'] = '/tmp/tinyauth/audit.log'
 
         self.rfh = self.patch('logging.handlers.RotatingFileHandler')
         self.rfh.return_value.level = logging.INFO

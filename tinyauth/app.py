@@ -73,10 +73,10 @@ def create_app(info):
 
     CORS(app, resources={r'/api/*': {'origins': '*', 'expose_headers': 'Content-Range'}})
 
-    app.config['AUTH_BACKEND'] = os.environ.get('BACKEND', 'db')
-    if app.config.get('BACKEND', 'db') == 'db':
+    app.config['TINYAUTH_AUTH_MODE'] = os.environ.get('TINYAUTH_AUTH_MODE', 'db')
+    if app.config.get('TINYAUTH_AUTH_MODE', 'db') == 'db':
         configure_backend_db(app)
-    elif app.config.get['BACKEND'] == 'proxy':
+    elif app.config['TINYAUTH_AUTH_MODE'] == 'proxy':
         configure_backend_proxy(app)
 
     return app
