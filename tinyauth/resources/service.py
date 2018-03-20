@@ -222,7 +222,7 @@ def batch_service_authorize(audit_ctx, service):
 
 @service_blueprint.route('/api/v1/regions/<region>/services/<service>/user-signing-tokens/<user>/<protocol>/<date>', methods=['GET'])
 @audit_request('GetServiceUserSigningToken')
-def GetServiceUserSigningToken(audit_ctx, region, service, user, protocol, date):
+def get_service_user_signing_token(audit_ctx, region, service, user, protocol, date):
     audit_ctx['request.region'] = region
     audit_ctx['request.service'] = service
     audit_ctx['request.protocol'] = protocol
@@ -247,7 +247,7 @@ def GetServiceUserSigningToken(audit_ctx, region, service, user, protocol, date)
 
 @service_blueprint.route('/api/v1/regions/<region>/services/<service>/access-key-signing-tokens/<access_key>/<protocol>/<date>', methods=['GET'])
 @audit_request('GetServiceAccessKeySigningToken')
-def GetServiceAccessKeySigningToken(audit_ctx, region, service, access_key, protocol, date):
+def get_service_accessKey_signing_token(audit_ctx, region, service, access_key, protocol, date):
     audit_ctx['request.region'] = region
     audit_ctx['request.service'] = service
     audit_ctx['request.protocol'] = protocol
@@ -272,7 +272,7 @@ def GetServiceAccessKeySigningToken(audit_ctx, region, service, access_key, prot
 
 @service_blueprint.route('/api/v1/regions/<region>/services/<service>/user-policies/<user>', methods=['GET'])
 @audit_request('GetServiceUserPolicies')
-def GetServiceUserPolicies(audit_ctx, region, service, user):
+def get_service_user_policies(audit_ctx, region, service, user):
     audit_ctx['request.region'] = region
     audit_ctx['request.service'] = service
     audit_ctx['request.user'] = user
