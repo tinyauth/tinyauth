@@ -1,10 +1,7 @@
 import base64
-import contextlib
 import json
-import os
-from unittest import mock
 
-from tinyauth.app import create_app, db
+from tinyauth.app import db
 from tinyauth.audit import format_json
 from tinyauth.models import UserPolicy
 
@@ -14,17 +11,18 @@ from . import base
 class TestCaseToken(base.TestCase):
 
     def test_authorize_service_invalid_outer_auth(self):
-        policy = UserPolicy(name='myserver', user=self.user, policy={
-            'Version': '2012-10-17',
-            'Statement': [{
-                'Action': 'myservice:*',
-                'Resource': '*',
-                'Effect': 'Allow',
-            }]
-        })
-        db.session.add(policy)
+        with self.backend.app_context():
+            policy = UserPolicy(name='myserver', user=self.user, policy={
+                'Version': '2012-10-17',
+                'Statement': [{
+                    'Action': 'myservice:*',
+                    'Resource': '*',
+                    'Effect': 'Allow',
+                }]
+            })
+            db.session.add(policy)
 
-        db.session.commit()
+            db.session.commit()
 
         response = self.client.post(
             '/api/v1/authorize',
@@ -50,7 +48,7 @@ class TestCaseToken(base.TestCase):
             'errors': {'authorization': 'InvalidSignature'}
         }
 
-        args, kwargs = self.audit_log.call_args_list[0]
+        args, kwargs = self.audit_log.call_args_list[-1]
         assert args[0] == 'AuthorizeByToken'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
@@ -60,17 +58,18 @@ class TestCaseToken(base.TestCase):
         }
 
     def test_authorize_service_invalid_params(self):
-        policy = UserPolicy(name='myserver', user=self.user, policy={
-            'Version': '2012-10-17',
-            'Statement': [{
-                'Action': 'myservice:*',
-                'Resource': '*',
-                'Effect': 'Allow',
-            }]
-        })
-        db.session.add(policy)
+        with self.backend.app_context():
+            policy = UserPolicy(name='myserver', user=self.user, policy={
+                'Version': '2012-10-17',
+                'Statement': [{
+                    'Action': 'myservice:*',
+                    'Resource': '*',
+                    'Effect': 'Allow',
+                }]
+            })
+            db.session.add(policy)
 
-        db.session.commit()
+            db.session.commit()
 
         response = self.client.post(
             '/api/v1/authorize',
@@ -99,7 +98,7 @@ class TestCaseToken(base.TestCase):
             }
         }
 
-        args, kwargs = self.audit_log.call_args_list[0]
+        args, kwargs = self.audit_log.call_args_list[-1]
         assert args[0] == 'AuthorizeByToken'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
@@ -112,17 +111,18 @@ class TestCaseToken(base.TestCase):
         }
 
     def test_authorize_service(self):
-        policy = UserPolicy(name='myserver', user=self.user, policy={
-            'Version': '2012-10-17',
-            'Statement': [{
-                'Action': 'myservice:*',
-                'Resource': '*',
-                'Effect': 'Allow',
-            }]
-        })
-        db.session.add(policy)
+        with self.backend.app_context():
+            policy = UserPolicy(name='myserver', user=self.user, policy={
+                'Version': '2012-10-17',
+                'Statement': [{
+                    'Action': 'myservice:*',
+                    'Resource': '*',
+                    'Effect': 'Allow',
+                }]
+            })
+            db.session.add(policy)
 
-        db.session.commit()
+            db.session.commit()
 
         response = self.client.post(
             '/api/v1/authorize',
@@ -146,7 +146,7 @@ class TestCaseToken(base.TestCase):
         assert response.status_code == 200
         assert json.loads(response.get_data(as_text=True)) == {'Authorized': True, 'Identity': 'charles'}
 
-        args, kwargs = self.audit_log.call_args_list[0]
+        args, kwargs = self.audit_log.call_args_list[-1]
         assert args[0] == 'AuthorizeByToken'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
@@ -164,17 +164,18 @@ class TestCaseToken(base.TestCase):
         }
 
     def test_authorize_service_failure(self):
-        policy = UserPolicy(name='myserver', user=self.user, policy={
-            'Version': '2012-10-17',
-            'Statement': [{
-                'Action': 'myservice:*',
-                'Resource': '*',
-                'Effect': 'Deny',
-            }]
-        })
-        db.session.add(policy)
+        with self.backend.app_context():
+            policy = UserPolicy(name='myserver', user=self.user, policy={
+                'Version': '2012-10-17',
+                'Statement': [{
+                    'Action': 'myservice:*',
+                    'Resource': '*',
+                    'Effect': 'Deny',
+                }]
+            })
+            db.session.add(policy)
 
-        db.session.commit()
+            db.session.commit()
 
         response = self.client.post(
             '/api/v1/authorize',
@@ -203,7 +204,7 @@ class TestCaseToken(base.TestCase):
             'Identity': 'charles',
         }
 
-        args, kwargs = self.audit_log.call_args_list[0]
+        args, kwargs = self.audit_log.call_args_list[-1]
         assert args[0] == 'AuthorizeByToken'
         assert kwargs['extra'] == {
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
@@ -219,6 +220,10 @@ class TestCaseToken(base.TestCase):
             'response.authorized': False,
             'response.identity': 'charles',
         }
+
+
+class TestCaseTokenProxied(base.TestProxyMixin, TestCaseToken):
+    pass
 
 
 class TestCaseBatchToken(base.TestCase):
@@ -427,56 +432,8 @@ class TestCaseBatchToken(base.TestCase):
         }
 
 
-class TestCaseBatchTokenProxied(TestCaseBatchToken):
-
-    def setUp(self):
-        self.backend = create_app(None)
-        with self.backend.app_context():
-            self.setup_db(self.backend)
-
-        self.stack = contextlib.ExitStack()
-
-        environ = {
-            'TINYAUTH_ENDPOINT': 'http://localhost',
-            'TINYAUTH_ACCESS_KEY_ID': 'access-key',
-            'TINYAUTH_SECRET_ACCESS_KEY': 'secret-key',
-            'TINYAUTH_AUTH_MODE': 'proxy',
-        }
-
-        with mock.patch.dict(os.environ, environ):
-            self.app = create_app(self)
-            self.app.config['WTF_CSRF_ENABLED'] = False
-            self.session = self.stack.enter_context(mock.patch.object(self.app.auth_backend, 'session'))
-
-        self.client = self.app.test_client()
-
-        self._ctx = self.app.test_request_context()
-        self._ctx.push()
-
-        uuid4 = self.stack.enter_context(mock.patch('uuid.uuid4'))
-        uuid4.return_value = 'a823a206-95a0-4666-b464-93b9f0606d7b'
-
-        self.audit_log = self.stack.enter_context(mock.patch('tinyauth.audit.logger.info'))
-
-        def session_get(url, headers, auth, verify):
-            with self.backend.app_context():
-                with self.backend.test_client() as client:
-                    r = client.get(
-                        url,
-                        headers={
-                            'Authorization': 'Basic {}'.format(
-                                base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
-                            )
-                        },
-                        content_type='application/json',
-                    )
-
-                response = mock.Mock()
-                response.status_code = r.status_code
-                response.json.return_value = json.loads(r.get_data(as_text=True))
-                return response
-
-        self.session.get.side_effect = session_get
+class TestCaseBatchTokenProxied(base.TestProxyMixin, TestCaseBatchToken):
+    pass
 
 
 class TestCaseLogin(base.TestCase):

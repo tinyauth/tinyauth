@@ -1,6 +1,7 @@
 import base64
 import contextlib
 import json
+import os
 import unittest
 from unittest import mock
 
@@ -116,3 +117,55 @@ class TestCase(BaseTestCase):
             db.session.remove()
             db.drop_all()
         super().tearDown()
+
+
+class TestProxyMixin(object):
+
+    def setUp(self):
+        self.backend = create_app(None)
+        with self.backend.app_context():
+            self.setup_db(self.backend)
+
+        self.stack = contextlib.ExitStack()
+
+        environ = {
+            'TINYAUTH_ENDPOINT': 'http://localhost',
+            'TINYAUTH_ACCESS_KEY_ID': 'AKIDEXAMPLE',
+            'TINYAUTH_SECRET_ACCESS_KEY': 'password',
+            'TINYAUTH_AUTH_MODE': 'proxy',
+        }
+
+        with mock.patch.dict(os.environ, environ):
+            self.app = create_app(self)
+            self.app.config['WTF_CSRF_ENABLED'] = False
+            self.session = self.stack.enter_context(mock.patch.object(self.app.auth_backend, 'session'))
+
+        self.client = self.app.test_client()
+
+        self._ctx = self.app.test_request_context()
+        self._ctx.push()
+
+        uuid4 = self.stack.enter_context(mock.patch('uuid.uuid4'))
+        uuid4.return_value = 'a823a206-95a0-4666-b464-93b9f0606d7b'
+
+        self.audit_log = self.stack.enter_context(mock.patch('tinyauth.audit.logger.info'))
+
+        def session_get(url, headers, auth, verify):
+            with self.backend.app_context():
+                with self.backend.test_client() as client:
+                    r = client.get(
+                        url,
+                        headers={
+                            'Authorization': 'Basic {}'.format(
+                                base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                            )
+                        },
+                        content_type='application/json',
+                    )
+
+                response = mock.Mock()
+                response.status_code = r.status_code
+                response.json.return_value = json.loads(r.get_data(as_text=True))
+                return response
+
+        self.session.get.side_effect = session_get
