@@ -10,6 +10,7 @@ import jwt
 from flask import Blueprint, current_app, jsonify
 from werkzeug.datastructures import Headers
 
+from .. import const
 from ..audit import audit_request, format_headers_for_audit_log
 from ..authorize import (
     external_authorize,
@@ -148,7 +149,7 @@ def get_token_for_login(audit_ctx, service):
 
     secret = current_app.auth_backend.get_user_key(
         'jwt',
-        req['region'] or '',
+        req['region'] or const.REGION_GLOBAL,
         service,
         iat,
         user.username,

@@ -26,7 +26,13 @@ class TestApp(TestCase):
 class TestProxyMode(BaseTestCase):
 
     def setUp(self):
-        with mock.patch.dict(os.environ, {'TINYAUTH_AUTH_MODE': 'proxy'}):
+        environ = {
+            'TINYAUTH_AUTH_MODE': 'proxy',
+            'TINYAUTH_ENDPOINT': 'http://localhost',
+            'TINYAUTH_ACCESS_KEY_ID': 'access-key',
+            'TINYAUTH_SECRET_ACCESS_KEY': 'secret-key',
+        }
+        with mock.patch.dict(os.environ, environ):
             super().setUp()
 
     def test_configure_worked(self):

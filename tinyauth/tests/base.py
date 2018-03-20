@@ -10,6 +10,8 @@ from tinyauth.models import AccessKey, User, UserPolicy
 
 class BaseTestCase(unittest.TestCase):
 
+    backend = None
+
     def patch(self, *args, **kwargs):
         patcher = mock.patch(*args, **kwargs)
         self.addCleanup(patcher.stop)
@@ -40,6 +42,8 @@ class BaseTestCase(unittest.TestCase):
 
         self.audit_log = self.stack.enter_context(mock.patch('tinyauth.audit.logger.info'))
 
+        self.backend = self.backend or self.app
+
     def tearDown(self):
         self._ctx.pop()
         self.stack.close()
@@ -68,9 +72,11 @@ class TestCase(BaseTestCase):
 
     def setUp(self):
         super().setUp()
+        self.setup_db(self.app)
 
-        self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-        db.create_all(app=self.app)
+    def setup_db(self, app):
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+        db.create_all(app=app)
 
         self.user = user = User(username='charles')
         user.set_password('mrfluffy')
@@ -106,6 +112,7 @@ class TestCase(BaseTestCase):
         db.session.commit()
 
     def tearDown(self):
-        db.session.remove()
-        db.drop_all()
+        with self.backend.app_context():
+            db.session.remove()
+            db.drop_all()
         super().tearDown()

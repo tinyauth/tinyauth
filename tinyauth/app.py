@@ -49,6 +49,10 @@ def configure_backend_db(app):
 
 
 def configure_backend_proxy(app):
+    app.config['TINYAUTH_ENDPOINT'] = os.environ['TINYAUTH_ENDPOINT']
+    app.config['TINYAUTH_ACCESS_KEY_ID'] = os.environ['TINYAUTH_ACCESS_KEY_ID']
+    app.config['TINYAUTH_SECRET_ACCESS_KEY'] = os.environ['TINYAUTH_SECRET_ACCESS_KEY']
+
     from . import resources
     app.register_blueprint(resources.service_blueprint)
 
@@ -62,8 +66,8 @@ def create_app(info):
         static_folder=None,
     )
 
-    app.config['TINYAUTH_PARTITION'] = app.config.get('TINYAUTH_PARTITION', 'tinyauth')
-    app.config['TINYAUTH_SERVICE'] = app.config.get('TINYAUTH_SERVICE', 'tinyauth')
+    app.config['TINYAUTH_PARTITION'] = os.environ.get('TINYAUTH_PARTITION', 'tinyauth')
+    app.config['TINYAUTH_SERVICE'] = os.environ.get('TINYAUTH_SERVICE', 'tinyauth')
 
     app.wsgi_app = ProxyFix(app.wsgi_app)
     RequestIdMiddleware(app)

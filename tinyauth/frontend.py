@@ -16,6 +16,7 @@ from flask import (
 )
 from flask_restful import reqparse
 
+from tinyauth import const
 from tinyauth.audit import audit_request
 from tinyauth.models import User
 
@@ -39,7 +40,7 @@ def get_session():
 
     secret = current_app.auth_backend.get_user_key(
         'jwt',
-        '',
+        const.REGION_GLOBAL,
         current_app.config['TINYAUTH_SERVICE'],
         datetime.datetime.utcfromtimestamp(unverified['iat']),
         unverified['user'],
@@ -114,7 +115,7 @@ def login_post(audit_ctx):
 
     secret = current_app.auth_backend.get_user_key(
         'jwt',
-        '',
+        const.REGION_GLOBAL,
         current_app.config['TINYAUTH_SERVICE'],
         iat,
         user.username,

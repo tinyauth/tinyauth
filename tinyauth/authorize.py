@@ -3,6 +3,7 @@ import datetime
 from flask import current_app, jsonify, request
 from werkzeug.http import parse_authorization_header
 
+from . import const
 from .exceptions import AuthenticationError, AuthorizationError, IdentityError
 from .identity import identify
 from .models import User
@@ -109,7 +110,7 @@ def internal_authorize(action, resource, ctx=None):
     context.update(ctx or {})
 
     authorized = _authorize_access_key(
-        '',
+        const.REGION_GLOBAL,
         current_app.config['TINYAUTH_SERVICE'],
         ':'.join((current_app.config['TINYAUTH_SERVICE'], action)),
         resource,
