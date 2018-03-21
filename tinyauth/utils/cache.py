@@ -3,17 +3,17 @@ import datetime
 import functools
 
 
-class Cache(collections.OrderedDict):
+class Cache(object):
 
     def __init__(self, max_size=1000):
         super().__init__()
         self.max_size = max_size
-        self.cache = {}
+        self.cache = collections.OrderedDict()
 
     def set(self, key, value, expiry):
-        for i in range(max(0, len(self) - self.max_size)):
-            self.popitem(last=False)
         self.cache[key] = (value, expiry)
+        for i in range(max(0, len(self.cache) - self.max_size)):
+            self.cache.popitem(last=False)
 
     def get(self, key):
         value, expiry = self.cache[key]
