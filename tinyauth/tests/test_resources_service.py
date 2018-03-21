@@ -433,7 +433,72 @@ class TestCaseBatchToken(base.TestCase):
 
 
 class TestCaseBatchTokenProxied(base.TestProxyMixin, TestCaseBatchToken):
-    pass
+
+    def test_authorize_service_cached(self):
+        with self.backend.app_context():
+            policy = UserPolicy(name='myserver', user=self.user, policy={
+                'Version': '2012-10-17',
+                'Statement': [{
+                    'Action': 'myservice:*',
+                    'Resource': '*',
+                    'Effect': 'Allow',
+                }]
+            })
+            db.session.add(policy)
+
+            db.session.commit()
+
+        for i in range(5):
+            response = self.client.post(
+                '/api/v1/services/myservice/authorize-by-token',
+                data=json.dumps({
+                    'region': 'europe',
+                    'permit': {
+                        'LaunchRocket': ['arn:myservice:rockets/thrift'],
+                    },
+                    'headers': [
+                        ('Authorization', 'Basic {}'.format(
+                            base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')))
+                    ],
+                    'context': {},
+                }),
+                headers={
+                    'Authorization': 'Basic {}'.format(
+                        base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                    )
+                },
+                content_type='application/json',
+            )
+            assert response.status_code == 200
+            assert json.loads(response.get_data(as_text=True)) == {
+                'Authorized': True,
+                'Identity': 'charles',
+                'Permitted': {'LaunchRocket': ['arn:myservice:rockets/thrift']},
+                'NotPermitted': {},
+            }
+
+            # This asserts that the first call to authorize hits the upstream tinyauth
+            # It also asserts that the next 4 do not, thus proving caching works
+            assert len(self.app.auth_backend.session.get.call_args_list) == 4
+
+        args, kwargs = self.audit_log.call_args_list[-1]
+        assert args[0] == 'AuthorizeByToken'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.service': 'myservice',
+            'request.permit': format_json({
+                'LaunchRocket': ['arn:myservice:rockets/thrift'],
+            }),
+            'request.actions': ['myservice:LaunchRocket'],
+            'request.resources': ['arn:myservice:rockets/thrift'],
+            'request.headers': ['Authorization: ** NOT LOGGED **'],
+            'request.context': {},
+            'response.authorized': True,
+            'response.identity': 'charles',
+            'response.permitted': format_json({'LaunchRocket': ['arn:myservice:rockets/thrift']}),
+            'response.not-permitted': format_json({}),
+        }
 
 
 class TestCaseLogin(base.TestCase):

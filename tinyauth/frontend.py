@@ -42,7 +42,7 @@ def get_session():
         'jwt',
         const.REGION_GLOBAL,
         current_app.config['TINYAUTH_SERVICE'],
-        datetime.datetime.utcfromtimestamp(unverified['iat']),
+        datetime.datetime.utcfromtimestamp(unverified['iat']).date(),
         unverified['user'],
     )
 
@@ -117,7 +117,7 @@ def login_post(audit_ctx):
         'jwt',
         const.REGION_GLOBAL,
         current_app.config['TINYAUTH_SERVICE'],
-        iat,
+        iat.date(),
         user.username,
     )
 

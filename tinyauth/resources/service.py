@@ -151,7 +151,7 @@ def get_token_for_login(audit_ctx, service):
         'jwt',
         req['region'] or const.REGION_GLOBAL,
         service,
-        iat,
+        iat.date(),
         user.username,
     )
 
@@ -235,7 +235,7 @@ def get_service_user_signing_token(audit_ctx, region, service, user, protocol, d
         protocol,
         region,
         service,
-        datetime.datetime.strptime(date, '%Y%m%d'),
+        datetime.datetime.strptime(date, '%Y%m%d').date(),
         user,
     )
 

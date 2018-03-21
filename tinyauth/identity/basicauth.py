@@ -26,7 +26,7 @@ def parse(region, service, headers):
         'basic-auth',
         region,
         service,
-        date,
+        date.date(),
         auth.username,
     )
 

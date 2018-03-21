@@ -21,7 +21,7 @@ def parse_session(region, service, headers):
         'jwt',
         region,
         service,
-        datetime.datetime.utcfromtimestamp(unverified['iat']),
+        datetime.datetime.utcfromtimestamp(unverified['iat']).date(),
         unverified.get('user', 'unknown'),
     )
 
