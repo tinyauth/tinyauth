@@ -2,10 +2,9 @@
 set -e
 cmd="$@"
 
-# This entrypoint is used to play nicely with the current cookiecutter configuration.
-# Since docker-compose relies heavily on environment variables itself for configuration, we'd have to define multiple
-# environment variables just to support cookiecutter out of the box. That makes no sense, so this little entrypoint
-# does all this for us.
+if [ -z "$TINYAUTH_AUTH_MODE" ]; then
+    export TINYAUTH_AUTH_MODE=db
+fi
 
 # the official postgres image uses 'postgres' as default user if not set explictly.
 if [ -z "$POSTGRES_USER" ]; then
@@ -31,10 +30,12 @@ sys.exit(0)
 END
 }
 
-until postgres_ready; do
-  >&2 echo "Postgres is unavailable - sleeping"
-  sleep 1
-done
+if [ "$TINYAUTH_AUTH_MODE" == "db" ]; then
+  until postgres_ready; do
+    >&2 echo "Postgres is unavailable - sleeping"
+    sleep 1
+  done
+  >&2 echo "Postgres is up - continuing..."
+fi
 
->&2 echo "Postgres is up - continuing..."
 exec $cmd

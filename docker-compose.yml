@@ -41,3 +41,20 @@ services:
     ports:
       - "0.0.0.0:443:443"
     restart: always
+
+  proxy:
+    build:
+      context: .
+      dockerfile: ./docker/flask/Dockerfile-dev
+    environment:
+      - TINYAUTH_AUTH_MODE=proxy
+      - TINYAUTH_ENDPOINT=https://nginx
+      - TINYAUTH_ACCESS_KEY_ID=gatekeeper
+      - TINYAUTH_SECRET_ACCESS_KEY=keymaster
+      - TINYAUTH_VERIFY=False
+      - AUDIT_LOG_FILENAME=/app/var/audit/audit.log
+    volumes:
+      - audit:/app/var/audit
+      - .:/app/src
+    ports:
+      - "8001:8000"

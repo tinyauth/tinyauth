@@ -52,6 +52,7 @@ def configure_backend_proxy(app):
     app.config['TINYAUTH_ENDPOINT'] = os.environ['TINYAUTH_ENDPOINT']
     app.config['TINYAUTH_ACCESS_KEY_ID'] = os.environ['TINYAUTH_ACCESS_KEY_ID']
     app.config['TINYAUTH_SECRET_ACCESS_KEY'] = os.environ['TINYAUTH_SECRET_ACCESS_KEY']
+    app.config['TINYAUTH_VERIFY'] = os.environ.get('TINYAUTH_VERIFY', 'true').lower() in ('true', 'yes')
 
     from . import resources
     app.register_blueprint(resources.service_blueprint)

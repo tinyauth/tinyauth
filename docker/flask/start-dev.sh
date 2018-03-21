@@ -1,5 +1,8 @@
-#!/bin/sh
-python -m tinyauth db upgrade
+#! /bin/bash
+
+if [ "$TINYAUTH_AUTH_MODE" == "db" ]; then
+  python -m tinyauth db upgrade
+fi
 
 export FLASK_APP=tinyauth.wsgi
 export FLASK_DEBUG=1
