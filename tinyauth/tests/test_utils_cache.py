@@ -50,3 +50,18 @@ class TestCacheDecorator(unittest.TestCase):
 
         assert result2 != result3
         assert len(callable.call_args_list) == 2
+
+    def test_serve_stale_on_error(self):
+        expires = datetime.datetime.utcnow() - datetime.timedelta(hours=1)
+
+        callable = mock.Mock()
+        fn = cache()(callable)
+
+        callable.side_effect = lambda *args: (expires, uuid.uuid4())
+        result2 = fn('key', 'key2')
+
+        callable.side_effect = RuntimeError('Temporary error')
+        result3 = fn('key', 'key2')
+
+        assert result2 == result3
+        assert len(callable.call_args_list) == 2
