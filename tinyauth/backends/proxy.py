@@ -1,7 +1,10 @@
 import base64
+import datetime
 
 import requests
 from flask import current_app
+
+from tinyauth.utils.cache import cache
 
 
 class Backend(object):
@@ -9,6 +12,7 @@ class Backend(object):
     def __init__(self):
         self.session = requests.Session()
 
+    @cache()
     def get_policies(self, region, service, username):
         endpoint = current_app.config['TINYAUTH_ENDPOINT']
         uri = f'/api/v1/regions/{region}/services/{service}/user-policies/{username}'
@@ -25,8 +29,11 @@ class Backend(object):
             verify=current_app.config.get('TINYAUTH_VERIFY', True),
         )
 
-        return response.json()
+        expires = datetime.datetime.strptime(response.headers['Expires'], '%a, %d %b %Y %H:%M:%S GMT')
 
+        return expires, response.json()
+
+    @cache()
     def get_user_key(self, protocol, region, service, date, username):
         endpoint = current_app.config['TINYAUTH_ENDPOINT']
         token_id = '/'.join((
@@ -48,10 +55,13 @@ class Backend(object):
             verify=current_app.config.get('TINYAUTH_VERIFY', True),
         )
 
+        expires = datetime.datetime.strptime(response.headers['Expires'], '%a, %d %b %Y %H:%M:%S GMT')
+
         token = response.json()
         token['key'] = base64.b64decode(token['key'])
-        return token
+        return expires, token
 
+    @cache()
     def get_access_key(self, protocol, region, service, date, access_key_id):
         endpoint = current_app.config['TINYAUTH_ENDPOINT']
         token_id = '/'.join((
@@ -73,6 +83,8 @@ class Backend(object):
             verify=current_app.config.get('TINYAUTH_VERIFY', True),
         )
 
+        expires = datetime.datetime.strptime(response.headers['Expires'], '%a, %d %b %Y %H:%M:%S GMT')
+
         token = response.json()
         token['key'] = base64.b64decode(token['key'])
-        return token
+        return expires, token

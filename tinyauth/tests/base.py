@@ -164,6 +164,7 @@ class TestProxyMixin(object):
                     )
 
                 response = mock.Mock()
+                response.headers = dict(r.headers)
                 response.status_code = r.status_code
                 response.json.return_value = json.loads(r.get_data(as_text=True))
                 return response

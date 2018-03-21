@@ -239,10 +239,17 @@ def get_service_user_signing_token(audit_ctx, region, service, user, protocol, d
         user,
     )
 
-    return jsonify({
+    response = jsonify({
         'key': base64.b64encode(secret['key']).decode('utf-8'),
         'identity': secret['identity'],
     })
+
+    expiry = 60 * 60 * 24 * 3
+    expire_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=expiry)
+    response.headers['Expires'] = expire_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
+    response.headers['Cache-Control'] = f'max-age={expiry}'
+
+    return response
 
 
 @service_blueprint.route('/api/v1/regions/<region>/services/<service>/access-key-signing-tokens/<access_key>/<protocol>/<date>', methods=['GET'])
@@ -264,10 +271,17 @@ def get_service_accessKey_signing_token(audit_ctx, region, service, access_key, 
         access_key,
     )
 
-    return jsonify({
+    response = jsonify({
         'key': base64.b64encode(secret['key']).decode('utf-8'),
         'identity': secret['identity'],
     })
+
+    expiry = 60 * 60 * 24 * 3
+    expire_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=expiry)
+    response.headers['Expires'] = expire_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
+    response.headers['Cache-Control'] = f'max-age={expiry}'
+
+    return response
 
 
 @service_blueprint.route('/api/v1/regions/<region>/services/<service>/user-policies/<user>', methods=['GET'])
@@ -281,4 +295,11 @@ def get_service_user_policies(audit_ctx, region, service, user):
 
     # FIXME: Return a filtered subset of the policies
     policies = current_app.auth_backend.get_policies(region, service, user)
-    return jsonify(policies)
+    response = jsonify(policies)
+
+    expiry = 60
+    expire_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=expiry)
+    response.headers['Expires'] = expire_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
+    response.headers['Cache-Control'] = f'max-age={expiry}'
+
+    return response

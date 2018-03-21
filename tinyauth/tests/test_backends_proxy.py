@@ -15,6 +15,10 @@ class TestBackendProxy(base.TestCase):
         self.app.config['TINYAUTH_ACCESS_KEY_ID'] = 'access-key'
         self.app.config['TINYAUTH_SECRET_ACCESS_KEY'] = 'secret-key'
 
+        requests.Session.return_value.get.return_value.headers = {
+            'Expires': 'Wed, 21 Oct 2015 07:28:00 GMT',
+            'Cache-Control': 'max-age=60',
+        }
         requests.Session.return_value.get.return_value.json.return_value = {
             'Statement': [],
         }
@@ -38,6 +42,10 @@ class TestBackendProxy(base.TestCase):
         self.app.config['TINYAUTH_ACCESS_KEY_ID'] = 'access-key'
         self.app.config['TINYAUTH_SECRET_ACCESS_KEY'] = 'secret-key'
 
+        requests.Session.return_value.get.return_value.headers = {
+            'Expires': 'Wed, 21 Oct 2015 07:28:00 GMT',
+            'Cache-Control': 'max-age=60',
+        }
         requests.Session.return_value.get.return_value.json.return_value = {
             'key': base64.b64encode(b'hello').decode('utf-8'),
             'identity': 'username',
@@ -65,6 +73,10 @@ class TestBackendProxy(base.TestCase):
         self.app.config['TINYAUTH_ACCESS_KEY_ID'] = 'access-key'
         self.app.config['TINYAUTH_SECRET_ACCESS_KEY'] = 'secret-key'
 
+        requests.Session.return_value.get.return_value.headers = {
+            'Expires': 'Wed, 21 Oct 2015 07:28:00 GMT',
+            'Cache-Control': 'max-age=60',
+        }
         requests.Session.return_value.get.return_value.json.return_value = {
             'key': base64.b64encode(b'hello').decode('utf-8'),
             'identity': 'username',
