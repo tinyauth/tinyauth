@@ -3,7 +3,7 @@ import json
 
 from tinyauth.app import db
 from tinyauth.audit import format_json
-from tinyauth.models import UserPolicy
+from tinyauth.models import Group, GroupPolicy, UserPolicy
 
 from . import base
 
@@ -113,6 +113,64 @@ class TestCaseToken(base.TestCase):
     def test_authorize_service(self):
         with self.backend.app_context():
             policy = UserPolicy(name='myserver', user=self.user, policy={
+                'Version': '2012-10-17',
+                'Statement': [{
+                    'Action': 'myservice:*',
+                    'Resource': '*',
+                    'Effect': 'Allow',
+                }]
+            })
+            db.session.add(policy)
+
+            db.session.commit()
+
+        response = self.client.post(
+            '/api/v1/authorize',
+            data=json.dumps({
+                'region': 'europe',
+                'action': 'myservice:LaunchRocket',
+                'resource': 'arn:myservice:rockets/thrift',
+                'headers': [
+                    ('Authorization', 'Basic {}'.format(
+                        base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')))
+                ],
+                'context': {},
+            }),
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                )
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 200
+        assert json.loads(response.get_data(as_text=True)) == {'Authorized': True, 'Identity': 'charles'}
+
+        args, kwargs = self.audit_log.call_args_list[-1]
+        assert args[0] == 'AuthorizeByToken'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.legacy': True,
+            'request.permit': format_json({
+                'myservice:LaunchRocket': ['arn:myservice:rockets/thrift'],
+            }),
+            'request.region': 'europe',
+            'request.actions': ['myservice:LaunchRocket'],
+            'request.resources': ['arn:myservice:rockets/thrift'],
+            'request.headers': ['Authorization: ** NOT LOGGED **'],
+            'request.context': {},
+            'response.authorized': True,
+            'response.identity': 'charles',
+        }
+
+    def test_authorize_service_by_group(self):
+        with self.backend.app_context():
+            group = Group(name='team')
+            group.users.append(self.user)
+            db.session.add(group)
+
+            policy = GroupPolicy(name='myserver', group=group, policy={
                 'Version': '2012-10-17',
                 'Statement': [{
                     'Action': 'myservice:*',
@@ -358,6 +416,72 @@ class TestCaseBatchToken(base.TestCase):
     def test_authorize_service(self):
         with self.backend.app_context():
             policy = UserPolicy(name='myserver', user=self.user, policy={
+                'Version': '2012-10-17',
+                'Statement': [{
+                    'Action': 'myservice:*',
+                    'Resource': '*',
+                    'Effect': 'Allow',
+                }]
+            })
+            db.session.add(policy)
+
+            db.session.commit()
+
+        response = self.client.post(
+            '/api/v1/services/myservice/authorize-by-token',
+            data=json.dumps({
+                'region': 'europe',
+                'permit': {
+                    'LaunchRocket': ['arn:myservice:rockets/thrift'],
+                },
+                'headers': [
+                    ('Authorization', 'Basic {}'.format(
+                        base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')))
+                ],
+                'context': {},
+            }),
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                )
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 200
+        assert json.loads(response.get_data(as_text=True)) == {
+            'Authorized': True,
+            'Identity': 'charles',
+            'Permitted': {'LaunchRocket': ['arn:myservice:rockets/thrift']},
+            'NotPermitted': {},
+        }
+
+        args, kwargs = self.audit_log.call_args_list[-1]
+        assert args[0] == 'AuthorizeByToken'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.service': 'myservice',
+            'request.permit': format_json({
+                'LaunchRocket': ['arn:myservice:rockets/thrift'],
+            }),
+            'request.region': 'europe',
+            'request.actions': ['myservice:LaunchRocket'],
+            'request.resources': ['arn:myservice:rockets/thrift'],
+            'request.headers': ['Authorization: ** NOT LOGGED **'],
+            'request.context': {},
+            'response.authorized': True,
+            'response.identity': 'charles',
+            'response.permitted': format_json({'LaunchRocket': ['arn:myservice:rockets/thrift']}),
+            'response.not-permitted': format_json({}),
+        }
+
+    def test_authorize_service_by_group(self):
+        with self.backend.app_context():
+            group = Group(name='team')
+            group.users.append(self.user)
+            db.session.add(group)
+
+            policy = GroupPolicy(name='myserver', group=group, policy={
                 'Version': '2012-10-17',
                 'Statement': [{
                     'Action': 'myservice:*',
