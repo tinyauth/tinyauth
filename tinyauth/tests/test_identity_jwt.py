@@ -1,6 +1,8 @@
 import base64
 import json
 
+import jwt
+
 from tinyauth.app import db
 from tinyauth.models import UserPolicy
 
@@ -76,3 +78,19 @@ class TestCaseIdentityJWT(base.TestCase):
             'id': 'freddy',
             'username': 'freddy',
         }]
+
+    def test_authorize_service_no_user(self):
+        self.client.set_cookie('localhost', 'tinysess', jwt.encode({
+            'user': 'userdontexist',
+            'iat': 0,
+        }, 'dummycode'))
+
+        response = self.client.get(
+            '/api/v1/users',
+            headers={
+                'X-CSRF-Token': self.csrf,
+            }
+        )
+
+        assert response.status_code == 401
+        assert json.loads(response.get_data(as_text=True)) == {'errors': {'authorization': 'NoSuchKey'}}
