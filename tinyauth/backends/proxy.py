@@ -4,6 +4,7 @@ import datetime
 import requests
 from flask import current_app
 
+from tinyauth import exceptions
 from tinyauth.utils.cache import cache
 
 
@@ -28,6 +29,9 @@ class Backend(object):
             },
             verify=current_app.config.get('TINYAUTH_VERIFY', True),
         )
+
+        if response.status_code == 404:
+            raise exceptions.NoSuchKey(identity=username)
 
         expires = datetime.datetime.strptime(response.headers['Expires'], '%a, %d %b %Y %H:%M:%S GMT')
 
@@ -54,6 +58,9 @@ class Backend(object):
             },
             verify=current_app.config.get('TINYAUTH_VERIFY', True),
         )
+
+        if response.status_code == 404:
+            raise exceptions.NoSuchKey(identity=username)
 
         expires = datetime.datetime.strptime(response.headers['Expires'], '%a, %d %b %Y %H:%M:%S GMT')
 
@@ -82,6 +89,9 @@ class Backend(object):
             },
             verify=current_app.config.get('TINYAUTH_VERIFY', True),
         )
+
+        if response.status_code == 404:
+            raise exceptions.NoSuchKey(identity=access_key_id)
 
         expires = datetime.datetime.strptime(response.headers['Expires'], '%a, %d %b %Y %H:%M:%S GMT')
 
