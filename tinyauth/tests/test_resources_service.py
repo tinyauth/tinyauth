@@ -164,6 +164,50 @@ class TestCaseToken(base.TestCase):
             'response.identity': 'charles',
         }
 
+    def test_authorize_service_failure_no_user(self):
+        response = self.client.post(
+            '/api/v1/authorize',
+            data=json.dumps({
+                'region': 'europe',
+                'action': 'myservice:LaunchRocket',
+                'resource': 'arn:myservice:rockets/thrift',
+                'headers': [
+                    ('Authorization', 'Basic {}'.format(
+                        base64.b64encode(b'nosuchuser:password').decode('utf-8')))
+                ],
+                'context': {},
+            }),
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                )
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 200
+        assert json.loads(response.get_data(as_text=True)) == {
+            'Authorized': False,
+            'ErrorCode': 'NoSuchKey',
+            'Status': 401,
+        }
+
+        args, kwargs = self.audit_log.call_args_list[-1]
+        assert args[0] == 'AuthorizeByToken'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.legacy': True,
+            'request.permit': format_json({
+                'myservice:LaunchRocket': ['arn:myservice:rockets/thrift'],
+            }),
+            'request.region': 'europe',
+            'request.actions': ['myservice:LaunchRocket'],
+            'request.resources': ['arn:myservice:rockets/thrift'],
+            'request.headers': ['Authorization: ** NOT LOGGED **'],
+            'request.context': {},
+            'response.authorized': False,
+        }
+
     def test_authorize_service_failure(self):
         with self.backend.app_context():
             policy = UserPolicy(name='myserver', user=self.user, policy={
@@ -371,6 +415,55 @@ class TestCaseBatchToken(base.TestCase):
             'response.identity': 'charles',
             'response.permitted': format_json({'LaunchRocket': ['arn:myservice:rockets/thrift']}),
             'response.not-permitted': format_json({}),
+        }
+
+    def test_authorize_service_failure_no_user(self):
+        response = self.client.post(
+            '/api/v1/services/myservice/authorize-by-token',
+            data=json.dumps({
+                'region': 'europe',
+                'permit': {
+                    'LaunchRocket': ['arn:myservice:rockets/thrift'],
+                },
+                'headers': [
+                    ('Authorization', 'Basic {}'.format(
+                        base64.b64encode(b'nosuchkey:password').decode('utf-8')))
+                ],
+                'context': {},
+            }),
+            headers={
+                'Authorization': 'Basic {}'.format(
+                    base64.b64encode(b'AKIDEXAMPLE:password').decode('utf-8')
+                )
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 200
+        assert json.loads(response.get_data(as_text=True)) == {
+            'Authorized': False,
+            'ErrorCode': 'NoSuchKey',
+            'NotPermitted': {'LaunchRocket': ['arn:myservice:rockets/thrift']},
+            'Permitted': {},
+        }
+
+        args, kwargs = self.audit_log.call_args_list[-1]
+        assert args[0] == 'AuthorizeByToken'
+        assert kwargs['extra'] == {
+            'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
+            'http.status': 200,
+            'request.service': 'myservice',
+            'request.region': 'europe',
+            'request.permit': format_json({
+                'LaunchRocket': ['arn:myservice:rockets/thrift'],
+            }),
+            'request.actions': ['myservice:LaunchRocket'],
+            'request.resources': ['arn:myservice:rockets/thrift'],
+            'request.headers': ['Authorization: ** NOT LOGGED **'],
+            'request.context': {},
+            'response.authorized': False,
+            # 'response.identity': 'charles',
+            'response.permitted': format_json({}),
+            'response.not-permitted': format_json({'LaunchRocket': ['arn:myservice:rockets/thrift']}),
         }
 
     def test_authorize_service_failure(self):

@@ -7,7 +7,7 @@ import logging
 import uuid
 
 import jwt
-from flask import Blueprint, current_app, jsonify
+from flask import Blueprint, abort, current_app, jsonify, make_response
 from werkzeug.datastructures import Headers
 
 from .. import const
@@ -19,7 +19,7 @@ from ..authorize import (
     get_arn_base,
     internal_authorize,
 )
-from ..exceptions import AuthenticationError
+from ..exceptions import AuthenticationError, NoSuchKey
 from ..models import User
 from ..reqparse import RequestParser
 
@@ -233,13 +233,16 @@ def get_service_user_signing_token(audit_ctx, region, service, user, protocol, d
 
     internal_authorize('GetServiceUserSigningToken', format_arn('services', service))
 
-    secret = current_app.auth_backend.get_user_key(
-        protocol,
-        region,
-        service,
-        datetime.datetime.strptime(date, '%Y%m%d').date(),
-        user,
-    )
+    try:
+        secret = current_app.auth_backend.get_user_key(
+            protocol,
+            region,
+            service,
+            datetime.datetime.strptime(date, '%Y%m%d').date(),
+            user,
+        )
+    except NoSuchKey:
+        abort(make_response(jsonify(message='No such key'), 404))
 
     response = jsonify({
         'key': base64.b64encode(secret['key']).decode('utf-8'),
@@ -265,13 +268,16 @@ def get_service_accessKey_signing_token(audit_ctx, region, service, access_key, 
 
     internal_authorize('GetServiceAccessKeySigningToken', format_arn('services', service))
 
-    secret = current_app.auth_backend.get_access_key(
-        protocol,
-        region,
-        service,
-        datetime.datetime.strptime(date, '%Y%m%d'),
-        access_key,
-    )
+    try:
+        secret = current_app.auth_backend.get_access_key(
+            protocol,
+            region,
+            service,
+            datetime.datetime.strptime(date, '%Y%m%d'),
+            access_key,
+        )
+    except NoSuchKey:
+        abort(make_response(jsonify(message='No such key'), 404))
 
     response = jsonify({
         'key': base64.b64encode(secret['key']).decode('utf-8'),
@@ -296,7 +302,11 @@ def get_service_user_policies(audit_ctx, region, service, user):
     internal_authorize('GetServiceUserPolicies', format_arn('services', service))
 
     # FIXME: Return a filtered subset of the policies
-    policies = current_app.auth_backend.get_policies(region, service, user)
+    try:
+        policies = current_app.auth_backend.get_policies(region, service, user)
+    except NoSuchKey:
+        abort(make_response(jsonify(message='No such key'), 404))
+
     response = jsonify(policies)
 
     expiry = 60
