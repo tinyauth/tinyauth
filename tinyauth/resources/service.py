@@ -56,7 +56,7 @@ def service_authorize_login(audit_ctx):
     audit_ctx['request.context'] = args['context']
 
     result = external_authorize_login(
-        args['region'],
+        args['region'] or '',
         args['action'].split(':', 1)[0] if ':' in args['action'] else '',
         action=args['action'],
         resource=args['resource'],
@@ -87,7 +87,7 @@ def service_authorize(audit_ctx):
     audit_ctx['request.context'] = args['context']
 
     result = external_authorize(
-        args['action'] or '',
+        args['region'] or '',
         args['action'].split(':', 1)[0] if ':' in args['action'] else '',
         action=args['action'],
         resource=args['resource'],
