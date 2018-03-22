@@ -48,7 +48,7 @@ def service_authorize_login(audit_ctx):
 
     args = authorize_parser.parse_args()
 
-    audit_ctx['request.region'] = args['region'] or ''
+    audit_ctx['request.region'] = args['region'] or const.REGION_GLOBAL
     audit_ctx['request.actions'] = [args['action']]
     audit_ctx['request.resources'] = [args['resource']]
     audit_ctx['request.permit'] = json.dumps({args['action']: [args['resource']]}, indent=4, separators=(',', ': '))
@@ -56,7 +56,7 @@ def service_authorize_login(audit_ctx):
     audit_ctx['request.context'] = args['context']
 
     result = external_authorize_login(
-        args['region'] or '',
+        args['region'] or const.REGION_GLOBAL,
         args['action'].split(':', 1)[0] if ':' in args['action'] else '',
         action=args['action'],
         resource=args['resource'],
@@ -80,6 +80,7 @@ def service_authorize(audit_ctx):
 
     args = authorize_parser.parse_args()
 
+    audit_ctx['request.region'] = args['region'] or const.REGION_GLOBAL
     audit_ctx['request.actions'] = [args['action']]
     audit_ctx['request.resources'] = [args['resource']]
     audit_ctx['request.permit'] = json.dumps({args['action']: [args['resource']]}, indent=4, separators=(',', ': '))
@@ -87,7 +88,7 @@ def service_authorize(audit_ctx):
     audit_ctx['request.context'] = args['context']
 
     result = external_authorize(
-        args['region'] or '',
+        args['region'] or const.REGION_GLOBAL,
         args['action'].split(':', 1)[0] if ':' in args['action'] else '',
         action=args['action'],
         resource=args['resource'],
@@ -179,6 +180,7 @@ def batch_service_authorize(audit_ctx, service):
     args = batch_authorize_parser.parse_args()
 
     audit_ctx.update({
+        'request.region': args['region'] or const.REGION_GLOBAL,
         'request.actions': [':'.join((service, action)) for action in args['permit'].keys()],
         'request.resources': list(itertools.chain(*args['permit'].values())),
         'request.permit': json.dumps(args['permit'], indent=4, separators=(',', ': ')),
@@ -196,7 +198,7 @@ def batch_service_authorize(audit_ctx, service):
     for action, resources in args['permit'].items():
         for resource in resources:
             step_result = external_authorize(
-                args['region'] or '',
+                args['region'] or const.REGION_GLOBAL,
                 service,
                 action=':'.join((service, action)),
                 resource=resource,

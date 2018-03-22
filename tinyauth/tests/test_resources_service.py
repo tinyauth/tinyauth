@@ -155,6 +155,7 @@ class TestCaseToken(base.TestCase):
             'request.permit': format_json({
                 'myservice:LaunchRocket': ['arn:myservice:rockets/thrift'],
             }),
+            'request.region': 'europe',
             'request.actions': ['myservice:LaunchRocket'],
             'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],
@@ -213,6 +214,7 @@ class TestCaseToken(base.TestCase):
             'request.permit': format_json({
                 'myservice:LaunchRocket': ['arn:myservice:rockets/thrift'],
             }),
+            'request.region': 'europe',
             'request.actions': ['myservice:LaunchRocket'],
             'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],
@@ -360,6 +362,7 @@ class TestCaseBatchToken(base.TestCase):
             'request.permit': format_json({
                 'LaunchRocket': ['arn:myservice:rockets/thrift'],
             }),
+            'request.region': 'europe',
             'request.actions': ['myservice:LaunchRocket'],
             'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],
@@ -418,6 +421,7 @@ class TestCaseBatchToken(base.TestCase):
             'request-id': 'a823a206-95a0-4666-b464-93b9f0606d7b',
             'http.status': 200,
             'request.service': 'myservice',
+            'request.region': 'europe',
             'request.permit': format_json({
                 'LaunchRocket': ['arn:myservice:rockets/thrift'],
             }),
@@ -490,6 +494,7 @@ class TestCaseBatchTokenProxied(base.TestProxyMixin, TestCaseBatchToken):
             'request.permit': format_json({
                 'LaunchRocket': ['arn:myservice:rockets/thrift'],
             }),
+            'request.region': 'europe',
             'request.actions': ['myservice:LaunchRocket'],
             'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],
@@ -545,7 +550,7 @@ class TestCaseLogin(base.TestCase):
             'request.permit': format_json({
                 'myservice:LaunchRocket': ['arn:myservice:rockets/thrift']
             }),
-            'request.region': '',
+            'request.region': 'global',
             'request.actions': ['myservice:LaunchRocket'],
             'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],
@@ -601,7 +606,7 @@ class TestCaseLogin(base.TestCase):
             'request.permit': format_json({
                 'myservice:LaunchRocket': ['arn:myservice:rockets/thrift']
             }),
-            'request.region': '',
+            'request.region': 'global',
             'request.actions': ['myservice:LaunchRocket'],
             'request.resources': ['arn:myservice:rockets/thrift'],
             'request.headers': ['Authorization: ** NOT LOGGED **'],
