@@ -17,12 +17,15 @@ def parse_session(region, service, headers):
 
     unverified = jwt.decode(cookies['tinysess'], '', verify=False)
 
+    if 'user' not in unverified or not isinstance(unverified['user'], str):
+        raise exceptions.InvalidSignature(identity='unknown')
+
     secret = current_app.auth_backend.get_user_key(
         'jwt',
         region,
         service,
         datetime.datetime.utcfromtimestamp(unverified['iat']).date(),
-        unverified.get('user', 'unknown'),
+        unverified['user'],
     )
 
     try:

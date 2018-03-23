@@ -94,3 +94,20 @@ class TestCaseIdentityJWT(base.TestCase):
 
         assert response.status_code == 401
         assert json.loads(response.get_data(as_text=True)) == {'errors': {'authorization': 'NoSuchKey'}}
+
+    def test_authorize_service_invalid_user_field(self):
+        # Don't choke if user is not a valid string
+        self.client.set_cookie('localhost', 'tinysess', jwt.encode({
+            'user': 666,
+            'iat': 0,
+        }, 'dummycode'))
+
+        response = self.client.get(
+            '/api/v1/users',
+            headers={
+                'X-CSRF-Token': self.csrf,
+            }
+        )
+
+        assert response.status_code == 401
+        assert json.loads(response.get_data(as_text=True)) == {'errors': {'authorization': 'InvalidSignature'}}
