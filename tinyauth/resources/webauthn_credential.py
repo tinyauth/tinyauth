@@ -1,7 +1,7 @@
 import base64
 import json
-from hmac import compare_digest
 
+from fido2 import cbor
 from fido2.client import ClientData
 from fido2.ctap2 import AttestationObject
 from flask import Blueprint, jsonify, make_response, request
@@ -185,6 +185,7 @@ def register_complete(audit_ctx, username):
         user=user,
         name=name,
         credential_id=credential_id,
+        public_key=cbor.dumps(att_obj.auth_data.credential_data.public_key),
         sign_count=att_obj.auth_data.counter,
     )
 

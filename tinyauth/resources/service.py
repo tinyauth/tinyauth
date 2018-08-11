@@ -7,15 +7,7 @@ import logging
 import uuid
 
 import jwt
-from flask import (
-    Blueprint,
-    abort,
-    current_app,
-    jsonify,
-    make_response,
-    request,
-    session,
-)
+from flask import Blueprint, abort, current_app, jsonify, make_response
 from werkzeug.datastructures import Headers
 
 from .. import const
@@ -28,7 +20,7 @@ from ..authorize import (
     internal_authorize,
 )
 from ..exceptions import AuthenticationError, NoSuchKey
-from ..models import AccessKey, User, WebAuthnCredential, db
+from ..models import User
 from ..reqparse import RequestParser
 
 service_blueprint = Blueprint('service', __name__)
@@ -323,107 +315,3 @@ def get_service_user_policies(audit_ctx, region, service, user):
     response.headers['Cache-Control'] = f'max-age={expiry}'
 
     return response
-
-
-@service_blueprint.route('/api/v1/regions/<region>/services/<service>/begin-challenge', methods=['POST'])
-@audit_request('FidoChallenge')
-def authenticate_begin(audit_ctx, region, service):
-    access_key = AccessKey.query.filter_by(access_key_id=request.get_json()['access_key_id']).first()
-    if not access_key:
-        return make_response(jsonify({'fail': 'Credential does not exist.'}), 401)
-
-    challenge = 'HARD CODED'
-
-    session['challenge'] = challenge
-
-    webauthn_user = webauthn.WebAuthnUser(
-        access_key.user.ukey,
-        access_key.user.username,
-        access_key.user.display_name,
-        access_key.user.icon_url,
-        access_key.user.credential_id,
-        access_key.user.pub_key,
-        access_key.user.sign_count,
-        "https://localhost",
-    )
-
-    webauthn_assertion_options = webauthn.WebAuthnAssertionOptions(
-        webauthn_user,
-        challenge,
-    )
-
-    return jsonify(webauthn_assertion_options.assertion_dict)
-
-
-@service_blueprint.route('/api/v1/regions/<region>/services/<service>/complete-challenge', methods=['POST'])
-@audit_request('FidoChallenge')
-def authenticate_complete(audit_ctx, region, service):
-    challenge = session.get('challenge')
-    assertion_response = request.form
-    credential_id = assertion_response.get('id')
-
-    reg = WebAuthnCredential.query.filter_by(credential_id=credential_id).first()
-    if not reg:
-        return make_response(jsonify({'fail': 'Credential does not exist.'}), 401)
-
-    webauthn_user = webauthn.WebAuthnUser(
-        reg.user.ukey,
-        reg.user.username,
-        reg.user.display_name,
-        reg.user.icon_url,
-        reg.credential_id,
-        reg.pub_key,
-        reg.sign_count,
-        "https://localhost",
-    )
-
-    webauthn_assertion_response = webauthn.WebAuthnAssertionResponse(
-        webauthn_user,
-        assertion_response,
-        challenge,
-        'https://localhost',
-        uv_required=False
-    )
-
-    try:
-        sign_count = webauthn_assertion_response.verify()
-    except Exception as e:
-        return jsonify({'fail': 'Assertion failed. Error: {}'.format(e)})
-
-    # Update counter.
-    reg.sign_count = sign_count
-    db.session.add(reg)
-    db.session.commit()
-
-    iat = datetime.datetime.utcnow()
-    expires = iat + datetime.timedelta(hours=8)
-
-    token_contents = {
-        'user': reg.user.username,
-        'mfa': True,
-        'exp': expires,
-        'iat': iat,
-    }
-
-    # if req['csrf-strategy'] == 'header-token':
-    #    token_contents['csrf-token'] = str(uuid.uuid4())
-
-    secret = current_app.auth_backend.get_user_key(
-        'jwt',
-        region or const.REGION_GLOBAL,
-        service,
-        iat.date(),
-        reg.user.username,
-    )
-
-    jwt_token = jwt.encode(
-        token_contents,
-        secret['key'],
-        algorithm='HS256',
-    )
-
-    response = {'token': jwt_token.decode('utf-8')}
-    if 'csrf-token' in token_contents:
-        response['csrf'] = token_contents['csrf-token']
-
-    return jsonify(response)

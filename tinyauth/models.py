@@ -121,6 +121,7 @@ class WebAuthnCredential(db.Model):
 
     name = db.Column(db.String(128))
     credential_id = db.Column(db.String(250), unique=True, nullable=False)
+    public_key = db.Column(db.LargeBinary(), nullable=True)
     sign_count = db.Column(db.Integer, default=0)
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
