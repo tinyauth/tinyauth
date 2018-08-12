@@ -192,7 +192,7 @@ def register_complete(audit_ctx, username):
     db.session.add(credential)
     db.session.commit()
 
-    return jsonify({'success': 'User successfully registered.'})
+    return jsonify(marshal(credential, webauthn_credential_fields))
 
 
 webauthn_credential_api = Api(webauthn_credential_blueprint, prefix='/api/v1')

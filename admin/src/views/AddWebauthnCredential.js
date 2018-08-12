@@ -79,7 +79,7 @@ class AddUserPolicy extends Component {
               type: "public-key",
               alg: -7,
             },],
-            //attestation: 'direct',
+            attestation: 'direct',
             //excludeCredentials: [],
             //extensions: json.extensions,
             //timeout: json.timeout,
