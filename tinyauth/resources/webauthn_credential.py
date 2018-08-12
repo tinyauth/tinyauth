@@ -1,9 +1,12 @@
 import base64
 import json
+from hmac import compare_digest
 
 from fido2 import cbor
 from fido2.client import ClientData
 from fido2.ctap2 import AttestationObject
+from fido2.rpid import verify_app_id
+from fido2.utils import sha256
 from flask import Blueprint, jsonify, make_response, request
 from flask_restful import Api, Resource, abort, fields, marshal, reqparse
 
@@ -158,15 +161,14 @@ def register_complete(audit_ctx, username):
     if client_data.get('type') != 'webauthn.create':
         raise ValueError('Incorrect type in ClientData.')
 
-    # if not self._verify(client_data.get('origin')):
-    #    raise ValueError('Invalid origin in ClientData.')
+    if not verify_app_id(client_data.get('origin'), 'https://localhost'):
+        raise ValueError('Invalid origin in client data')
 
     # if not compare_digest(b'XXXXXXXXXXX', base64.b64decode(client_data['challenge'])):
     #    raise ValueError('Wrong challenge in response.')
 
-    # if not compare_digest(sha256(self.rp_id.encode()),
-    #                              attestation_object.auth_data.rp_id_hash):
-    #    raise ValueError('Wrong RP ID hash in response.')
+    if not compare_digest(sha256('localhost'.encode()), att_obj.auth_data.rp_id_hash):
+        raise ValueError('Wrong RP ID hash in response.')
 
     # TODO: Ensure that we're using an acceptable attestation format.
     att_obj.verify(client_data.hash)
