@@ -42,6 +42,94 @@ class TestSimplePolicy(unittest.TestCase):
 
 class TestPolicyConditions(unittest.TestCase):
 
+    def test_StringEquals_allow(self):
+        policy = {
+            'Version': '2012-10-17',
+            'Statement': [{
+                'Action': 'myservice:ListInstances',
+                'Resource': 'arn::myservice:::instances/foo_*',
+                'Condition': {
+                    'StringEquals': {'SourceIp': '127.0.0.1'}
+                },
+                'Effect': 'Allow',
+            }]
+        }
+
+        assert allow(
+            policy,
+            'myservice:ListInstances',
+            'arn::myservice:::instances/foo_1',
+            context={
+                'SourceIp': '127.0.0.1',
+            }
+        ) == "Allow"
+
+    def test_StringEquals_deny(self):
+        policy = {
+            'Version': '2012-10-17',
+            'Statement': [{
+                'Action': 'myservice:ListInstances',
+                'Resource': 'arn::myservice:::instances/foo_*',
+                'Condition': {
+                    'StringEquals': {'SourceIp': '127.0.0.1'}
+                },
+                'Effect': 'Allow',
+            }]
+        }
+
+        assert allow(
+            policy,
+            'myservice:ListInstances',
+            'arn::myservice:::instances/foo_1',
+            context={
+                'SourceIp': '127.0.0.2',
+            }
+        ) == "Default"
+
+    def test_StringNotEquals_allow(self):
+        policy = {
+            'Version': '2012-10-17',
+            'Statement': [{
+                'Action': 'myservice:ListInstances',
+                'Resource': 'arn::myservice:::instances/foo_*',
+                'Condition': {
+                    'StringNotEquals': {'SourceIp': '127.0.0.1'}
+                },
+                'Effect': 'Allow',
+            }]
+        }
+
+        assert allow(
+            policy,
+            'myservice:ListInstances',
+            'arn::myservice:::instances/foo_1',
+            context={
+                'SourceIp': '127.0.0.2',
+            }
+        ) == "Allow"
+
+    def test_StringNotEquals_deny(self):
+        policy = {
+            'Version': '2012-10-17',
+            'Statement': [{
+                'Action': 'myservice:ListInstances',
+                'Resource': 'arn::myservice:::instances/foo_*',
+                'Condition': {
+                    'StringNotEquals': {'SourceIp': '127.0.0.1'}
+                },
+                'Effect': 'Allow',
+            }]
+        }
+
+        assert allow(
+            policy,
+            'myservice:ListInstances',
+            'arn::myservice:::instances/foo_1',
+            context={
+                'SourceIp': '127.0.0.1',
+            }
+        ) == "Default"
+
     def test_ip_address_allow(self):
         policy = {
             'Version': '2012-10-17',

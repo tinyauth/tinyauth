@@ -10,6 +10,14 @@ def _match_condition_notipaddress(left, right):
     return not _match_condition_ipaddress(left, right)
 
 
+def _match_condition_stringequals(left, right):
+    return left == right
+
+
+def _match_condition_stringnotequals(left, right):
+    return not _match_condition_stringequals(left, right)
+
+
 def _get_list(dict, key):
     retval = dict.get(key, [])
     if isinstance(retval, list):
@@ -38,6 +46,8 @@ def _match_resource(statement, resource):
 
 
 _condition_functions = {
+    'StringEquals': _match_condition_stringequals,
+    'StringNotEquals': _match_condition_stringnotequals,
     'IpAddress': _match_condition_ipaddress,
     'NotIpAddress': _match_condition_notipaddress,
 }
