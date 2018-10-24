@@ -1,20 +1,30 @@
 import fnmatch
 import ipaddress
 
+NOT_PRESENT = object()
+
 
 def _match_condition_ipaddress(left, right):
+    if left is NOT_PRESENT:
+        return False
     return ipaddress.ip_address(left) in ipaddress.ip_network(right)
 
 
 def _match_condition_notipaddress(left, right):
+    if left is NOT_PRESENT:
+        return False
     return not _match_condition_ipaddress(left, right)
 
 
 def _match_condition_stringequals(left, right):
+    if left is NOT_PRESENT:
+        return False
     return left == right
 
 
 def _match_condition_stringnotequals(left, right):
+    if left is NOT_PRESENT:
+        return False
     return not _match_condition_stringequals(left, right)
 
 
@@ -58,7 +68,7 @@ def _match_condition(statement, context):
     for condition_check, conditions in statement.get('Condition', {}).items():
         fn = _condition_functions[condition_check]
         for condition, value in conditions.items():
-            if not fn(context[condition], value):
+            if not fn(context.get(condition, NOT_PRESENT), value):
                 return False
 
     return True
